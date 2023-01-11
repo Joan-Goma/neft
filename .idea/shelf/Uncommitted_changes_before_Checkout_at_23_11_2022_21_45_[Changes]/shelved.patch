@@ -1,0 +1,273 @@
+Index: helper/engine.go
+===================================================================
+diff --git a/helper/engine.go b/helper/engine.go
+--- a/helper/engine.go	
++++ b/helper/engine.go	
+@@ -1,20 +1,22 @@
+ package helper
+ 
+-import(
++import (
++	"bufio"
+ 	"fmt"
+ 	"os"
+ 
+-	helperS "github.com/JoanGTSQ/api"
++	engine "github.com/JoanGTSQ/api"
+ 	"github.com/gin-gonic/gin"
+ 	"neft.web/controllers"
+ 	"neft.web/middlewares"
+ 	"neft.web/models"
+ )
+ 
++// InitDB generate a connection with the database
+ func InitDB(sslmode string, debugdb bool) error {
+-  // Create connection with DB
+-	helperS.Debug.Println("Creating connection with DB")
+-  var err error
++	// Create connection with DB
++	engine.Debug.Println("Creating connection with DB")
++	var err error
+ 	controllers.Services, err = models.NewServices(fmt.Sprintf(
+ 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+ 		os.Getenv("dbDirection"),
+@@ -24,16 +26,16 @@
+ 		os.Getenv("dbName"),
+ 		sslmode),
+ 		debugdb)
+-  if err != nil {
+-    return err
+-  }
+-  return nil
++	if err != nil {
++		return err
++	}
++	return nil
+ }
+ 
+-// Generate a router with directions and middlewares
++// InitRouter Generate a router with directions and middlewares
+ func InitRouter() *gin.Engine {
+ 
+-  controllersR := controllers.Controllers{
++	controllersR := controllers.Controllers{
+ 		Users:        controllers.NewUsers(controllers.Services.User),
+ 		Transactions: controllers.NewTransaction(controllers.Services.Transaction),
+ 		Devices:      controllers.NewDevices(controllers.Services.Device),
+@@ -69,7 +71,22 @@
+ 		beta.PATCH("/transaction", controllersR.Transactions.UpdateTransaction)
+ 		beta.GET("/transactions", controllersR.Transactions.RetrieveAllTransaction)
+ 		beta.GET("/transaction/:id", controllersR.Transactions.GetTransaction)
+-    beta.PATCH("/transaction/:id", controllersR.Transactions.RevertTransaction)
++		beta.PATCH("/transaction/:id", controllersR.Transactions.RevertTransaction)
+ 	}
+ 	return router
+-}
+\ No newline at end of file
++}
++
++func ReadInput(debug bool) {
++	input := bufio.NewScanner(os.Stdin)
++	for input.Scan() {
++		switch input.Text() {
++		case "maintenance":
++			middlewares.Maintenance = !middlewares.Maintenance
++			engine.Info.Println("maintenance", middlewares.Maintenance)
++		case "debug":
++			debug = !debug
++			engine.EnableDebug(debug)
++			engine.Info.Println("debug mode", middlewares.Maintenance)
++		}
++	}
++}
+Index: test/user_test.go
+===================================================================
+diff --git a/test/user_test.go b/test/user_test.go
+--- a/test/user_test.go	
++++ b/test/user_test.go	
+@@ -1,20 +1,20 @@
+ package test
+ 
+ import (
+-    "net/http"
+-    "net/http/httptest"
+-    "testing"
+-    "github.com/stretchr/testify/assert"
++	"github.com/stretchr/testify/assert"
++	"net/http"
++	"net/http/httptest"
++	"testing"
+ )
+ 
+ func TestMainUser(t *testing.T) {
+ 
+-    r := SetUpRouter()
+-    req, _ := http.NewRequest("GET", "/v1/secured/whoami", nil)
+-    req.Header.Set("neftAuth", Token)
+-    w := httptest.NewRecorder()
+-    r.ServeHTTP(w, req)
++	r := SetUpRouter()
++	req, _ := http.NewRequest("GET", "/v1/secured/whoami", nil)
++	req.Header.Set("neftAuth", Token)
++	w := httptest.NewRecorder()
++	r.ServeHTTP(w, req)
+ 
+-    // responseData, _ := ioutil.ReadAll(w.Body)
+-    assert.Equal(t, http.StatusOK, w.Code)
++	// responseData, _ := ioutil.ReadAll(w.Body)
++	assert.Equal(t, http.StatusOK, w.Code)
+ }
+Index: test/auth_test.go
+===================================================================
+diff --git a/test/auth_test.go b/test/auth_test.go
+--- a/test/auth_test.go	
++++ b/test/auth_test.go	
+@@ -1,91 +1,90 @@
+ package test
+ 
+ import (
+-    "bytes"
+-    "encoding/json"
+-  "io/ioutil"
+-    "net/http"
+-    "net/http/httptest"
+-    "testing"
+-  "fmt"
+-    "github.com/stretchr/testify/assert"
++	"bytes"
++	"encoding/json"
++	"fmt"
++	"github.com/stretchr/testify/assert"
++	"io/ioutil"
++	"net/http"
++	"net/http/httptest"
++	"testing"
+ 
+-  "neft.web/helper"
+-    "github.com/gin-gonic/gin"
+-  	helperS "github.com/JoanGTSQ/api"
+-    "neft.web/controllers"
+-    "neft.web/models"
++	engine "github.com/JoanGTSQ/api"
++	"github.com/gin-gonic/gin"
++	"neft.web/controllers"
++	"neft.web/engine"
++	"neft.web/models"
+ )
+ 
+ var Token string
+ var Email = "hola@hola.hola"
+ 
+-func SetUpRouter() *gin.Engine{
+-  helperS.InitLog(false, "text.txt", "0.0.1")
+-  	gin.SetMode(gin.ReleaseMode)
++func SetUpRouter() *gin.Engine {
++	engine.InitLog(false, "text.txt", "0.0.1")
++	gin.SetMode(gin.ReleaseMode)
+ 
+-  if err := helper.InitDB("require", false); err != nil {
+-		helperS.Error.Fatalln("Can not connect to DB: ", err)
++	if err := engine.InitDB("disablebv ", false); err != nil {
++		engine.Error.Fatalln("Can not connect to DB: ", err)
+ 	}
+ 	// defer controllers.Services.Close()
+ 
+ 	// Auto generate new tables or modifications in every start | Use DestructiveReset() to delete all data
+ 
+ 	if err := controllers.Services.AutoMigrate(); err != nil {
+-		helperS.Error.Fatalln("Can not AutoMigrate the database")
++		engine.Error.Fatalln("Can not AutoMigrate the database")
+ 	}
+ 
+ 	// Retrieve controllers struct
+-	helperS.Debug.Println("Creating all services handlers")
+-	
++	engine.Debug.Println("Creating all services handlers")
++
+ 	// Generate Router
+-	helperS.Debug.Println("Creating gin router")
+-	r := helper.InitRouter()
+-  return r
++	engine.Debug.Println("Creating gin router")
++	r := engine.InitRouter()
++	return r
+ }
+ 
+-type answer struct{
+-  Data map[string]interface{}
+-  Message string
++type answer struct {
++	Data    map[string]interface{}
++	Message string
+ }
+ 
+ func TestAuthRegister(t *testing.T) {
+ 
+-    r := SetUpRouter()
+-      user := models.User{
+-        UserName: "JoanGTSQ",
+-        FullName: "nope",
+-          Email: Email,
+-          Password: "PuroVici!1",
+-      }
+-    jsonValue, _ := json.Marshal(user)
+-    req, _ := http.NewRequest("PUT", "/v1/auth", bytes.NewBuffer(jsonValue))
++	r := SetUpRouter()
++	user := models.User{
++		UserName: "JoanGTSQ",
++		FullName: "nope",
++		Email:    Email,
++		Password: "PuroVici!1",
++	}
++	jsonValue, _ := json.Marshal(user)
++	req, _ := http.NewRequest("PUT", "/v1/auth", bytes.NewBuffer(jsonValue))
+ 
+-    w := httptest.NewRecorder()
+-    r.ServeHTTP(w, req)
++	w := httptest.NewRecorder()
++	r.ServeHTTP(w, req)
+ 
+-    assert.Equal(t, http.StatusOK, w.Code)
++	assert.Equal(t, http.StatusOK, w.Code)
+ }
+ 
+-
+ func TestAuthLogin(t *testing.T) {
+-    
+-    r := SetUpRouter()
+-      user := models.User{
+-          Email: Email,
+-          Password: "PuroVici!1",
+-      }
+-    jsonValue, _ := json.Marshal(user)
+-    req, _ := http.NewRequest("POST", "/v1/auth", bytes.NewBuffer(jsonValue))
++
++	r := SetUpRouter()
++	user := models.User{
++		Email:    Email,
++		Password: "PuroVici!1",
++	}
++	jsonValue, _ := json.Marshal(user)
++	req, _ := http.NewRequest("POST", "/v1/auth", bytes.NewBuffer(jsonValue))
+ 
+-    w := httptest.NewRecorder()
+-    r.ServeHTTP(w, req)
++	w := httptest.NewRecorder()
++	r.ServeHTTP(w, req)
+ 
+-    responseData, _ := ioutil.ReadAll(w.Body)
++	responseData, _ := ioutil.ReadAll(w.Body)
+ 
+-    var x answer
+-    
+-    json.Unmarshal([]byte(responseData), &x)
+-    Token = fmt.Sprintf("%v", x.Data["token"])
+-    assert.Equal(t, http.StatusOK, w.Code)
+-}
+\ No newline at end of file
++	var x answer
++
++	json.Unmarshal([]byte(responseData), &x)
++	Token = fmt.Sprintf("%v", x.Data["token"])
++	assert.Equal(t, http.StatusOK, w.Code)
++}

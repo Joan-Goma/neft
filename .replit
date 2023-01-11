@@ -1,0 +1,13 @@
+run = "go run . -port=:999 -debug=true -debugDB=false -route=log/log.txt"
+entrypoint = "main.go"
+
+[languages.go]
+pattern = "**/*.go"
+
+[languages.go.languageServer]
+start = "gopls"
+
+[nix]
+channel = "stable-21_11"
+
+

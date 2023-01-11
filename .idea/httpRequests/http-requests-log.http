@@ -1,0 +1,12 @@
+POST http://localhost:8080/v1/auth
+Content-Type: application/json
+
+{
+  "email": "joan.goma.timon@gmail.com",
+  "password": "PuroVici!1"
+}
+
+<> 2022-11-24T182936.200.json
+
+###
+

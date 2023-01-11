@@ -1,0 +1,1 @@
+LOGS=-route=/srv/logNew.txt -debug=true
