@@ -7,6 +7,8 @@ import (
 
 	"reflect"
 
+	"time"
+
 	engine "github.com/JoanGTSQ/api"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -38,6 +40,8 @@ func ControlWebsocket(context *gin.Context) {
 	c, err := ReturnClient(ws, ws.RemoteAddr().String())
 
 	go c.StartMessageServer()
+	go CheckToken(&c)
+
 	c.User = models.User{}
 
 	for {
@@ -172,4 +176,19 @@ func ReturnClient(ws *websocket.Conn, addr string) (controller.Client, error) {
 	}
 	newClient.RegisterToPool()
 	return newClient, nil
+}
+
+func CheckToken(c *controller.Client) {
+	////m := rand.Intn(20)
+	ticker := time.NewTicker(20 * time.Minute)
+	done := make(chan bool)
+
+	for {
+		select {
+		case <-done:
+			return
+		case <-ticker.C:
+			engine.Debug.Println("tiempo!!")
+		}
+	}
 }
