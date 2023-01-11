@@ -180,7 +180,7 @@ func ReturnClient(ws *websocket.Conn, addr string) (controller.Client, error) {
 
 func CheckToken(c *controller.Client) {
 	////m := rand.Intn(20)
-	ticker := time.NewTicker(20 * time.Minute)
+	ticker := time.NewTicker(1 * time.Minute)
 	done := make(chan bool)
 
 	for {
@@ -188,7 +188,9 @@ func CheckToken(c *controller.Client) {
 		case <-done:
 			return
 		case <-ticker.C:
-			engine.Debug.Println("tiempo!!")
+			c.LastMessage.Command = "temporal_login"
+			c.LastMessage.Data = ""
+			c.SendMessage()
 		}
 	}
 }

@@ -78,7 +78,7 @@ func main() {
 	if !debug {
 		// Start server
 		engine.Info.Println("Running SSL server on port :443")
-		if err := r.RunTLS(":4444563", cer, key); err != nil {
+		if err := r.RunTLS(":443", cer, key); err != nil {
 			engine.Error.Fatalln("Error starting web server", err)
 		}
 	} else {
