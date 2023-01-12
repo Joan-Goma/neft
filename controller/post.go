@@ -14,7 +14,7 @@ func (client *Client) GetPost() {
 	err := client.GetInterfaceFromMap("user_to_follow", post)
 	if err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
@@ -22,11 +22,11 @@ func (client *Client) GetPost() {
 	err = post.ByID()
 	if err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
-	client.LastMessage.Data = post
+	client.LastMessage.Data["post"] = post
 	client.SendMessage()
 }
 
@@ -38,7 +38,7 @@ func (client *Client) CreatePost() {
 	// Obtain the body in the request and parse to the user
 	if err := client.GetInterfaceFromMap("post", post); err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
@@ -48,13 +48,13 @@ func (client *Client) CreatePost() {
 
 	if err := post.Create(); err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
 	engine.Debug.Println("New post created")
 
-	client.LastMessage.Data = post
+	client.LastMessage.Data["post"] = post
 	client.SendMessage()
 }
 
@@ -105,26 +105,26 @@ func (client *Client) DeletePost() {
 	// Obtain the body in the request and parse to the user
 	if err := client.GetInterfaceFromMap("post", post); err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
 	err := post.ByID()
 	if err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
 
 	if err := post.Delete(); err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
 
-	client.LastMessage.Data = "Post deleted!"
+	client.LastMessage.Data["message"] = "Post deleted!"
 	client.SendMessage()
 }
 
@@ -136,26 +136,26 @@ func (client *Client) UpdatePost() {
 	// Obtain the body in the request and parse to the user
 	if err := client.GetInterfaceFromMap("post", post); err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
 
 	if err := post.Update(); err != nil {
 		engine.Warning.Println(engine.ERR_NOT_SAME_USER)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
 
 	if err := post.ByID(); err != nil {
 		engine.Warning.Println(engine.ERR_NOT_SAME_USER)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
 
-	client.LastMessage.Data = post
+	client.LastMessage.Data["error"] = post
 	client.SendMessage()
 }
 
@@ -166,13 +166,13 @@ func (client *Client) CommentPost() {
 	err := client.GetInterfaceFromMap("post", post)
 	if err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
 	if err := post.ByID(); err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
@@ -181,19 +181,19 @@ func (client *Client) CommentPost() {
 	// Obtain the body in the request and parse to the user
 	if err := client.GetInterfaceFromMap("comment", comment); err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
 	comment.CommentatorID = client.User.ID
 	if err = post.Comment(comment); err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
 
-	client.LastMessage.Data = "Comment created successfully!"
+	client.LastMessage.Data["message"] = "Comment created successfully!"
 	client.SendMessage()
 }
 
@@ -204,7 +204,7 @@ func (client *Client) UncommentPost() {
 
 	if err := client.GetInterfaceFromMap("post", post); err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
@@ -214,18 +214,18 @@ func (client *Client) UncommentPost() {
 	// Obtain the body in the request and parse to the user
 	if err := client.GetInterfaceFromMap("comment", comment); err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
 	if err := post.Uncomment(comment); err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
 
-	client.LastMessage.Data = "Comment deleted successfully"
+	client.LastMessage.Data["message"] = "Comment deleted successfully"
 	client.SendMessage()
 }
 
@@ -239,19 +239,19 @@ func (client *Client) LikePost() {
 
 	if err := client.GetInterfaceFromMap("post", post); err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
 
 	if err := post.Like(client.User.ID); err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
 
-	client.LastMessage.Data = "Like successfully"
+	client.LastMessage.Data["message"] = "Like successfully"
 	client.SendMessage()
 }
 
@@ -263,18 +263,18 @@ func (client *Client) UnlikePost() {
 
 	if err := client.GetInterfaceFromMap("post", post); err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
 
 	if err := post.Unlike(client.User.ID); err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
 
-	client.LastMessage.Data = "Post unliked successfully"
+	client.LastMessage.Data["message"] = "Post unliked successfully"
 	client.SendMessage()
 }

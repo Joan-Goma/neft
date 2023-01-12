@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+
 	engine "github.com/JoanGTSQ/api"
 	"neft.web/models"
 )
@@ -14,26 +15,26 @@ func (client *Client) UpdateUser() {
 	newUser, err := client.GetUserFromMap()
 	if err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
 
 	if client.User.ID != newUser.ID {
 		engine.Warning.Println(engine.ERR_NOT_SAME_USER, newUser.ID, client.User.ID)
-		client.LastMessage.Data = engine.ERR_NOT_SAME_USER.Error()
+		client.LastMessage.Data["error"] = engine.ERR_NOT_SAME_USER.Error()
 		client.SendMessage()
 		return
 	}
 	// Try to update the user
 	if err := newUser.Update(); err != nil {
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		engine.Warning.Println(err)
 		return
 	}
 	client.User = newUser
-	client.LastMessage.Data = "User updated successfully"
+	client.LastMessage.Data["message"] = "User updated successfully"
 	client.SendMessage()
 }
 
@@ -44,28 +45,28 @@ func (client *Client) DeleteUser() {
 	user, err := client.GetUserFromMap()
 	if err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
 
 	if user.ID != client.User.ID {
 		engine.Warning.Println("Someone is trying to delete a user without rights")
-		client.LastMessage.Data = "ERR: you are trying to delete a user without rights"
+		client.LastMessage.Data["error"] = "you are trying to delete a user without rights"
 		client.SendMessage()
 		return
 	}
 	// Try to delete the user
 	if err := user.Delete(); err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
 	client.User = models.User{}
 
 	// Close connection with status http.StatusOK (resource deleted)
-	client.LastMessage.Data = "user deleted"
+	client.LastMessage.Data["message"] = "user deleted"
 	client.SendMessage()
 }
 
@@ -75,7 +76,7 @@ func (client *Client) RetrieveUser() {
 	user, err := client.GetUserFromMap()
 	if err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
@@ -83,12 +84,12 @@ func (client *Client) RetrieveUser() {
 	err = user.ByID()
 	if err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
 
-	client.LastMessage.Data = user
+	client.LastMessage.Data["user"] = user
 	client.SendMessage()
 }
 
@@ -97,21 +98,21 @@ func (client *Client) SignUp() {
 	user, err := client.GetUserFromMap()
 	if err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
 	// Create user with the data received
 	if err := user.Create(); err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err.Error()
+		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
 
 	client.User = user
 
-	client.LastMessage.Data = "User created successfully"
+	client.LastMessage.Data["message"] = "User created successfully"
 	client.SendMessage()
 }
 
@@ -121,7 +122,7 @@ func (client *Client) InitUserReset() {
 	user, err := client.GetUserFromMap()
 	if err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
@@ -130,12 +131,12 @@ func (client *Client) InitUserReset() {
 	token, err := user.InitiateReset()
 	if err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
 
-	client.LastMessage.Data = token
+	client.LastMessage.Data["token"] = token
 	client.SendMessage()
 }
 
@@ -150,7 +151,7 @@ func (client *Client) CompleteReset() {
 	user, err := client.GetUserFromMap()
 	if err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
@@ -158,7 +159,7 @@ func (client *Client) CompleteReset() {
 	err = client.GetInterfaceFromMap("token", form)
 	if err != nil {
 		engine.Debug.Println(err)
-		client.LastMessage.Data = "Error: " + err.Error()
+		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
@@ -166,12 +167,12 @@ func (client *Client) CompleteReset() {
 	err = user.CompleteReset(form.Token, user.Password)
 	if err != nil {
 		engine.Debug.Println(err)
-		client.LastMessage.Data = "Error: " + err.Error()
+		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
 
-	client.LastMessage.Data = "User password reset successfully"
+	client.LastMessage.Data["message"] = "User password reset successfully"
 	client.SendMessage()
 
 }
@@ -184,17 +185,17 @@ func (client *Client) FollowUser() {
 	err := client.GetInterfaceFromMap("user_to_follow", userToFollow)
 	if err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
 	if err = client.User.Follow(userToFollow.ID); err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
-	client.LastMessage.Data = fmt.Sprintf("User ID %d followed successfully", userToFollow.ID)
+	client.LastMessage.Data["message"] = fmt.Sprintf("User ID %d followed successfully", userToFollow.ID)
 	client.SendMessage()
 }
 
@@ -205,16 +206,16 @@ func (client *Client) UnfollowUser() {
 	err := client.GetInterfaceFromMap("user_to_follow", userToUnfollow)
 	if err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
 	if err = client.User.Unfollow(userToUnfollow.ID); err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err
+		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
-	client.LastMessage.Data = fmt.Sprintf("User ID %d unfollowed successfully", userToUnfollow.ID)
+	client.LastMessage.Data["message"] = fmt.Sprintf("User ID %d unfollowed successfully", userToUnfollow.ID)
 	client.SendMessage()
 }

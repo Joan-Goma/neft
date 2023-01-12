@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"sync"
+	"time"
 
 	engine "github.com/JoanGTSQ/api"
 	"github.com/gorilla/websocket"
@@ -22,20 +23,14 @@ type Client struct {
 	Sync            *sync.Mutex     `json:"-"`
 	WS              *websocket.Conn `json:"-"`
 	LastMessage     Message         `json:"-"`
-	IncomingMessage IncomingMessage `json:"-"`
+	IncomingMessage Message         `json:"-"`
 	Token           string          `json:"token, omitempty"`
 }
 
 type Message struct {
-	RequestID int64       `json:"request_id,omitempty"`
-	Command   string      `json:"command, omitempty"`
-	Data      interface{} `json:"data, omitempty"`
-}
-
-type IncomingMessage struct {
 	RequestID int64                  `json:"request_id,omitempty"`
 	Command   string                 `json:"command"`
-	Data      map[string]interface{} `json:"data"`
+	Data      map[string]interface{} `json:"data, omitempty"`
 }
 
 //Login Authenticate the user from the request message
@@ -44,17 +39,17 @@ func (client *Client) Login() {
 	err := mapstructure.Decode(client.IncomingMessage.Data["user"], &user)
 	if err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = err.Error()
+		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
 	if err := user.Authenticate(); err != nil {
-		client.LastMessage.Data = err.Error()
+		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
 	client.User = user
-	client.LastMessage.Data = "login succesfull! Welcome to the hub!"
+	client.LastMessage.Data["message"] = "login succesfull! Welcome to the hub!"
 	client.SendMessage()
 }
 
@@ -104,9 +99,8 @@ func (client *Client) StartMessageServer() {
 	for {
 		select {
 		case m := <-Lobby:
-			message := Message{
-				Data: m,
-			}
+			message := Message{}
+			message.Data["message"] = message
 			if m.Receiver == uuid.FromStringOrNil("0") {
 				m.Type = "global"
 				for _, client := range Hub {
@@ -132,7 +126,7 @@ func (client *Client) StartMessageServer() {
 //MessageController Control the desired message to send all users or single user
 func (client *Client) MessageController() {
 	if !client.CheckClientIsSync() {
-		client.LastMessage.Data = "Please sync your client before sending messages"
+		client.LastMessage.Data["error"] = "Please sync your client before sending messages"
 		client.SendMessage()
 		return
 	}
@@ -145,10 +139,10 @@ func (client *Client) MessageController() {
 		if client.User.RoleID == 3 {
 			messagee.Receiver = uuid.FromStringOrNil("0")
 			Lobby <- messagee
-			client.LastMessage.Data = "Message succesful"
+			client.LastMessage.Data["message"] = "Message succesful"
 			client.SendMessage()
 		} else {
-			client.LastMessage.Data = "You don't have enough rights to send this messages"
+			client.LastMessage.Data["error"] = "You don't have enough rights to send this messages"
 			client.SendMessage()
 		}
 
@@ -156,12 +150,12 @@ func (client *Client) MessageController() {
 		uuidReceiver, err := uuid.FromString(fmt.Sprintf("%v", client.IncomingMessage.Data["receiver"]))
 		if err != nil {
 			engine.Warning.Println(err)
-			client.LastMessage.Data = err.Error()
+			client.LastMessage.Data["error"] = err.Error()
 			client.SendMessage()
 		}
 		messagee.Receiver = uuidReceiver
 		Lobby <- messagee
-		client.LastMessage.Data = "Message succesful"
+		client.LastMessage.Data["message"] = "Message succesful"
 		client.SendMessage()
 	}
 }
@@ -173,7 +167,7 @@ func (client *Client) GetUserFromMap() (models.User, error) {
 	jsonStr, err := json.Marshal(client.IncomingMessage.Data["user"])
 	if err != nil {
 		engine.Debug.Println(err)
-		client.LastMessage.Data = "Error: " + err.Error()
+		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return models.User{}, err
 	}
@@ -181,7 +175,7 @@ func (client *Client) GetUserFromMap() (models.User, error) {
 	// Obtain the body in the request and parse to the user
 	if err := json.Unmarshal(jsonStr, &user); err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = engine.ERR_INVALID_JSON
+		client.LastMessage.Data["error"] = engine.ERR_INVALID_JSON
 		client.SendMessage()
 		return models.User{}, err
 	}
@@ -194,14 +188,14 @@ func (client *Client) GetInterfaceFromMap(position string, dest interface{}) err
 	jsonStr, err := json.Marshal(client.IncomingMessage.Data[position])
 	if err != nil {
 		engine.Debug.Println(err)
-		client.LastMessage.Data = "Error: " + err.Error()
+		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return err
 	}
 	// Obtain the body in the request and parse to the user
 	if err := json.Unmarshal(jsonStr, dest); err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data = engine.ERR_INVALID_JSON
+		client.LastMessage.Data["error"] = engine.ERR_INVALID_JSON
 		client.SendMessage()
 		return err
 	}
@@ -217,17 +211,32 @@ func (client *Client) ValidateToken() {
 
 	if err := client.GetInterfaceFromMap("token", &token); err != nil {
 		client.LastMessage.Command = "invalid_token"
-		client.LastMessage.Data = "please try again"
+		client.LastMessage.Data["error"] = "please try again"
 		return
 	}
 
 	if err := auth.ValidateToken(token); err != nil {
 		client.Sync.Lock()
 		client.LastMessage.Command = "invalid_token"
-		client.LastMessage.Data = "the token was invalid, please verify and connect again"
+		client.LastMessage.Data["error"] = "the token was invalid, please verify and connect again"
 		client.SendMessage()
 		client.ApplyTemporalBan()
 		client.Sync.Unlock()
 		return
+	}
+}
+func (c *Client) CheckToken() {
+	////m := rand.Intn(20)
+	ticker := time.NewTicker(1 * time.Minute)
+	done := make(chan bool)
+
+	for {
+		select {
+		case <-done:
+			return
+		case <-ticker.C:
+			c.LastMessage.Command = "temporal_login"
+			c.SendMessage()
+		}
 	}
 }

@@ -7,8 +7,6 @@ import (
 
 	"reflect"
 
-	"time"
-
 	engine "github.com/JoanGTSQ/api"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -37,12 +35,12 @@ func ControlWebsocket(context *gin.Context) {
 	defer ws.Close()
 
 	engine.Debug.Println("New client connected!")
-	c, err := ReturnClient(ws, ws.RemoteAddr().String())
+	c, err := GenerateClient(ws, ws.RemoteAddr().String())
 
-	go c.StartMessageServer()
-	go CheckToken(&c)
-
-	c.User = models.User{}
+	if err != nil {
+		ws.Close()
+		engine.Warning.Println("error generating new client", err)
+	}
 
 	for {
 		engine.Debug.Println("New Incoming message")
@@ -60,8 +58,14 @@ func ControlWebsocket(context *gin.Context) {
 			engine.Warning.Println(err)
 		}
 
-		c.LastMessage.Command = c.IncomingMessage.Command
-		c.LastMessage.RequestID = c.IncomingMessage.RequestID
+		m, err := ReadMessage(ws)
+
+		if err != nil {
+			engine.Warning.Println(err)
+			return
+		}
+		c.LastMessage = m
+		//c.IncomingMessage = m
 
 		if reflect.DeepEqual(c.User, models.User{}) || c.User.Banned {
 			{
@@ -70,7 +74,7 @@ func ControlWebsocket(context *gin.Context) {
 					c.ValidateToken()
 					break
 				case "whoami":
-					c.LastMessage.Data = c
+					c.LastMessage.Data["user"] = c
 					c.SendMessage()
 					break
 				case "login":
@@ -80,7 +84,7 @@ func ControlWebsocket(context *gin.Context) {
 					c.SignUp()
 					break
 				case "count_client":
-					c.LastMessage.Data = len(controller.Hub)
+					c.LastMessage.Data["len"] = len(controller.Hub)
 					c.SendMessage()
 					break
 				case "quit":
@@ -92,28 +96,28 @@ func ControlWebsocket(context *gin.Context) {
 					}
 					return
 				default:
-					c.LastMessage.Data = "command invalid or access denied, please try again"
+					c.LastMessage.Data["error"] = "command invalid or access denied, please try again"
 					c.SendMessage()
 				}
 			}
 		} else {
 			switch c.IncomingMessage.Command {
 			case "whoami":
-				c.LastMessage.Data = c
+				c.LastMessage.Data["user"] = c
 				c.SendMessage()
 				break
 			case "validate_token":
 				c.ValidateToken()
 				break
 			case "count_client":
-				c.LastMessage.Data = len(controller.Hub)
+				c.LastMessage.Data["message"] = len(controller.Hub)
 				c.SendMessage()
 			case "message":
 				c.MessageController()
 				break
 			case "get_post_from_id":
 				if !c.CheckClientIsSync() {
-					c.LastMessage.Data = "Please sync your client before request posts"
+					c.LastMessage.Data["alert"] = "Please sync your client before request posts"
 					c.SendMessage()
 					break
 				}
@@ -121,11 +125,11 @@ func ControlWebsocket(context *gin.Context) {
 				post, err := client.GetPost(postID)
 				if err != nil {
 					engine.Warning.Println(err)
-					c.LastMessage.Data = err.Error()
+					c.LastMessage.Data["error"] = err.Error()
 					c.SendMessage()
 					break
 				}
-				c.LastMessage.Data = post
+				c.LastMessage.Data["post"] = post
 				c.SendMessage()
 			case "logout":
 				c.User = models.User{}
@@ -160,16 +164,16 @@ func ControlWebsocket(context *gin.Context) {
 				}
 				return
 			default:
-				c.LastMessage.Data = "command invalid, please try again"
+				c.LastMessage.Data["error"] = "command invalid, please try again"
 				c.SendMessage()
 			}
 		}
 
-		c.IncomingMessage = controller.IncomingMessage{}
+		c.IncomingMessage = controller.Message{}
 	}
 }
 
-func ReturnClient(ws *websocket.Conn, addr string) (controller.Client, error) {
+func GenerateClient(ws *websocket.Conn, addr string) (controller.Client, error) {
 	u := uuid.NewV4()
 	if controller.Hub[u] != nil {
 		u = uuid.NewV4()
@@ -178,25 +182,29 @@ func ReturnClient(ws *websocket.Conn, addr string) (controller.Client, error) {
 		UUID: u,
 		Addr: addr,
 		WS:   ws,
+		User: models.User{},
 		Sync: &sync.Mutex{},
 	}
 	newClient.RegisterToPool()
+	go newClient.StartMessageServer()
+	go newClient.CheckToken()
 	return newClient, nil
 }
 
-func CheckToken(c *controller.Client) {
-	////m := rand.Intn(20)
-	ticker := time.NewTicker(1 * time.Minute)
-	done := make(chan bool)
-
-	for {
-		select {
-		case <-done:
-			return
-		case <-ticker.C:
-			c.LastMessage.Command = "temporal_login"
-			c.LastMessage.Data = "please validate your token"
-			c.SendMessage()
-		}
+func ReadMessage(ws *websocket.Conn) (controller.Message, error) {
+	engine.Debug.Println("New Incoming message")
+	//engine.Debug.Printf("Client, %d sent another request %d", message.RequestID, message.RequestID)
+	var message controller.Message
+	//Read Message from client
+	_, m, err := ws.ReadMessage()
+	if err != nil {
+		engine.Warning.Println(err)
+		return controller.Message{}, err
 	}
+
+	err = json.Unmarshal(m, &message)
+	if err != nil {
+		engine.Warning.Println(err)
+	}
+	return message, nil
 }
