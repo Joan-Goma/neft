@@ -4,29 +4,32 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"reflect"
+	"sync"
+
 	engine "github.com/JoanGTSQ/api"
 	"github.com/gorilla/websocket"
 	"github.com/mitchellh/mapstructure"
 	uuid "github.com/satori/go.uuid"
+	"neft.web/auth"
 	"neft.web/models"
-	"reflect"
-	"sync"
 )
 
 type Client struct {
-	UUID            uuid.UUID       `json:"UUID"`
+	UUID            uuid.UUID       `json:"UUID, omitempty"`
 	Addr            string          `json:"-"`
-	User            models.User     `json:"user"`
+	User            models.User     `json:"user, omitempty"`
 	Sync            *sync.Mutex     `json:"-"`
 	WS              *websocket.Conn `json:"-"`
 	LastMessage     Message         `json:"-"`
 	IncomingMessage IncomingMessage `json:"-"`
+	Token           string          `json:"token, omitempty"`
 }
 
 type Message struct {
 	RequestID int64       `json:"request_id,omitempty"`
-	Command   string      `json:"command"`
-	Data      interface{} `json:"data"`
+	Command   string      `json:"command, omitempty"`
+	Data      interface{} `json:"data, omitempty"`
 }
 
 type IncomingMessage struct {
@@ -203,4 +206,28 @@ func (client *Client) GetInterfaceFromMap(position string, dest interface{}) err
 		return err
 	}
 	return nil
+}
+
+func (client *Client) ApplyTemporalBan() {
+	client.User.Banned = true
+}
+
+func (client *Client) ValidateToken() {
+	var token string
+
+	if err := client.GetInterfaceFromMap("token", &token); err != nil {
+		client.LastMessage.Command = "invalid_token"
+		client.LastMessage.Data = "please try again"
+		return
+	}
+
+	if err := auth.ValidateToken(token); err != nil {
+		client.Sync.Lock()
+		client.LastMessage.Command = "invalid_token"
+		client.LastMessage.Data = "the token was invalid, please verify and connect again"
+		client.SendMessage()
+		client.ApplyTemporalBan()
+		client.Sync.Unlock()
+		return
+	}
 }

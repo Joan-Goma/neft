@@ -45,6 +45,7 @@ func InitRouter() *gin.Engine {
 	router.Use(middlewares.CORSMiddleware())
 	api := router.Group("/v1")
 	{
+		api.POST("/auth", controllersR.Users.Login)
 
 		secured := api.Group("/secured").Use(middlewares.RequireAuth())
 		{

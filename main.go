@@ -82,9 +82,9 @@ func main() {
 			engine.Error.Fatalln("Error starting web server", err)
 		}
 	} else {
-		engine.Info.Println("Running non SSL server on port :8080")
-		if err := r.Run(":8080"); err != nil {
-			engine.Error.Fatalln("Error starting web server")
+		engine.Info.Println("Running non SSL server on port", port)
+		if err := r.Run(port); err != nil {
+			engine.Error.Fatalln("Error starting web server", err)
 		}
 	}
 

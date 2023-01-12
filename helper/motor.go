@@ -66,6 +66,9 @@ func ControlWebsocket(context *gin.Context) {
 		if reflect.DeepEqual(c.User, models.User{}) || c.User.Banned {
 			{
 				switch c.IncomingMessage.Command {
+				case "validate_token":
+					c.ValidateToken()
+					break
 				case "whoami":
 					c.LastMessage.Data = c
 					c.SendMessage()
@@ -98,6 +101,9 @@ func ControlWebsocket(context *gin.Context) {
 			case "whoami":
 				c.LastMessage.Data = c
 				c.SendMessage()
+				break
+			case "validate_token":
+				c.ValidateToken()
 				break
 			case "count_client":
 				c.LastMessage.Data = len(controller.Hub)
@@ -189,7 +195,7 @@ func CheckToken(c *controller.Client) {
 			return
 		case <-ticker.C:
 			c.LastMessage.Command = "temporal_login"
-			c.LastMessage.Data = ""
+			c.LastMessage.Data = "please validate your token"
 			c.SendMessage()
 		}
 	}
