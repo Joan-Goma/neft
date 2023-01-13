@@ -11,14 +11,8 @@ import (
 
 var jwtKey = []byte("kedg5b0ays1ekngsg18ruawcekgvcnz6")
 
-type User struct {
-	Name   string `json:"key"`
-	Email  string `json:"email"`
-	Banned bool   `json:"banned"`
-	Rol    uint   `json:"rol"`
-}
 type Context struct {
-	User User `json:"user"`
+	User models.User `json:"user"`
 }
 
 type JWTClaim struct {
@@ -33,12 +27,7 @@ func GenerateJWT(user *models.User) (tokenString string, err error) {
 	}
 	claims := &JWTClaim{
 		Context: Context{
-			User: User{
-				Name:   user.UserName,
-				Email:  user.Email,
-				Banned: user.Banned,
-				Rol:    user.RoleID,
-			},
+			User: *user,
 		},
 		StandardClaims: jwt.StandardClaims{
 			Id:        tokenID.String(),

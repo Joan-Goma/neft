@@ -10,7 +10,6 @@ import (
 
 	engine "github.com/JoanGTSQ/api"
 	"github.com/gorilla/websocket"
-	"github.com/mitchellh/mapstructure"
 	uuid "github.com/satori/go.uuid"
 	"neft.web/auth"
 	"neft.web/models"
@@ -35,20 +34,15 @@ type Message struct {
 
 //Login Authenticate the user from the request message
 func (client *Client) Login() {
-	var user models.User
-	err := mapstructure.Decode(client.IncomingMessage.Data["user"], &user)
+
+	claims, err := auth.ReturnClaims(client.Token)
 	if err != nil {
-		engine.Warning.Println(err)
-		client.LastMessage.Data["error"] = err.Error()
+		client.LastMessage.Data["error"] = "login error"
 		client.SendMessage()
 		return
 	}
-	if err := user.Authenticate(); err != nil {
-		client.LastMessage.Data["error"] = err.Error()
-		client.SendMessage()
-		return
-	}
-	client.User = user
+
+	client.User = claims.Context.User
 	client.LastMessage.Data["message"] = "login succesfull! Welcome to the hub!"
 	client.SendMessage()
 }
@@ -224,6 +218,8 @@ func (client *Client) ValidateToken() {
 		client.Sync.Unlock()
 		return
 	}
+	client.Token = token
+	client.Login()
 }
 func (c *Client) CheckToken() {
 	////m := rand.Intn(20)
