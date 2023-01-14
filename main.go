@@ -16,7 +16,6 @@ var (
 	port    string
 	debug   bool
 	debugDB bool
-	ssl     bool
 	route   string
 )
 
