@@ -15,7 +15,7 @@ func (client *Client) UpdateUser() {
 	newUser, err := client.GetUserFromRequest()
 	if err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data["error"] = err
+		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
@@ -28,7 +28,7 @@ func (client *Client) UpdateUser() {
 	}
 	// Try to update the user
 	if err := newUser.Update(); err != nil {
-		client.LastMessage.Data["error"] = err
+		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		engine.Warning.Println(err)
 		return
@@ -45,7 +45,7 @@ func (client *Client) DeleteUser() {
 	user, err := client.GetUserFromRequest()
 	if err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data["error"] = err
+		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
@@ -59,7 +59,7 @@ func (client *Client) DeleteUser() {
 	// Try to delete the user
 	if err := user.Delete(); err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data["error"] = err
+		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
@@ -76,7 +76,7 @@ func (client *Client) RetrieveUser() {
 	user, err := client.GetUserFromRequest()
 	if err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data["error"] = err
+		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
@@ -84,7 +84,7 @@ func (client *Client) RetrieveUser() {
 	err = user.ByID()
 	if err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data["error"] = err
+		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
@@ -98,7 +98,7 @@ func (client *Client) SignUp() {
 	user, err := client.GetUserFromRequest()
 	if err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data["error"] = err
+		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
@@ -122,7 +122,7 @@ func (client *Client) InitUserReset() {
 	user, err := client.GetUserFromRequest()
 	if err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data["error"] = err
+		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
@@ -131,7 +131,7 @@ func (client *Client) InitUserReset() {
 	token, err := user.InitiateReset()
 	if err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data["error"] = err
+		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
@@ -151,7 +151,7 @@ func (client *Client) CompleteReset() {
 	user, err := client.GetUserFromRequest()
 	if err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data["error"] = err
+		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
@@ -185,13 +185,13 @@ func (client *Client) FollowUser() {
 	err := client.GetInterfaceFromMap("user_to_follow", userToFollow)
 	if err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data["error"] = err
+		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
 	if err = client.User.Follow(userToFollow.ID); err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data["error"] = err
+		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
@@ -206,13 +206,13 @@ func (client *Client) UnfollowUser() {
 	err := client.GetInterfaceFromMap("user_to_follow", userToUnfollow)
 	if err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data["error"] = err
+		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
 	if err = client.User.Unfollow(userToUnfollow.ID); err != nil {
 		engine.Warning.Println(err)
-		client.LastMessage.Data["error"] = err
+		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}

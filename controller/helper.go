@@ -26,6 +26,15 @@ type Client struct {
 	Token           string          `json:"token,omitempty"`
 }
 
+type C interface {
+	Client
+	test
+}
+
+type test interface {
+	ValidateAndExecute()
+}
+
 type Message struct {
 	RequestID int64                  `json:"request_id,omitempty"`
 	Command   string                 `json:"command"`
