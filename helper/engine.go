@@ -46,13 +46,12 @@ func InitRouter() *gin.Engine {
 	api := router.Group("/v1")
 	{
 		api.POST("/auth", controllersR.Users.Login)
-
+		api.PUT("/auth", controllersR.Users.RegisterUser)
 		secured := api.Group("/secured").Use(middlewares.RequireAuth())
 		{
 			// USER
 
 			secured.GET("/users", controllersR.Users.RetrieveAllUsers)
-
 			secured.PUT("/post", controllersR.Posts.CreatePost)
 			secured.DELETE("/post", controllersR.Posts.DeletePost)
 			secured.PATCH("/post", controllersR.Posts.UpdatePost)

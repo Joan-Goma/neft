@@ -101,3 +101,40 @@ func (us *Users) Login(context *gin.Context) {
 	}
 	response.SendAnswer()
 }
+
+// RegisterUser PUT /auth
+// Obtain user data, register it in the database and return a JWT TOKEN and 201 code
+func (us *Users) RegisterUser(context *gin.Context) {
+	var user models.User
+
+	// Obtain the body in the request and parse to the user
+	if err := context.ShouldBindJSON(&user); err != nil {
+		engine.Warning.Println(err)
+		handleError(err, context)
+		return
+	}
+
+	// Create user with the data received
+	if err := user.Create(); err != nil {
+		engine.Warning.Println(err)
+		handleError(err, context)
+		return
+	}
+
+	// Generate  JWT Token
+	tokenString, err := auth.GenerateJWT(&user)
+	if err != nil {
+		engine.Warning.Println(err)
+		handleError(err, context)
+		return
+	}
+
+	// return token in 200
+	ResponseMap["data"] = gin.H{"token": tokenString}
+	response = engine.Response{
+		ResponseCode: http.StatusOK,
+		Context:      context,
+		Response:     ResponseMap,
+	}
+	response.SendAnswer()
+}

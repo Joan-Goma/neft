@@ -5,13 +5,10 @@ import (
 	"net/http"
 	"sync"
 
-	"reflect"
-
 	engine "github.com/JoanGTSQ/api"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	uuid "github.com/satori/go.uuid"
-	"neft.web/client"
 	"neft.web/controller"
 	"neft.web/models"
 )
@@ -46,129 +43,63 @@ func ControlWebsocket(context *gin.Context) {
 		engine.Debug.Println("New Incoming message")
 
 		engine.Info.Printf("New request ID: %d", c.LastMessage.RequestID)
-		//Read Message from client
-		_, message, err := ws.ReadMessage()
-		if err != nil {
-			engine.Warning.Println(err)
-			break
-		}
-		engine.Debug.Println(string(message))
-		err = json.Unmarshal(message, &c.IncomingMessage)
-		if err != nil {
-			engine.Warning.Println(err)
-		}
 
-		m, err := ReadMessage(ws)
+		err = ReadMessage(ws, &c.IncomingMessage)
 
 		if err != nil {
 			engine.Warning.Println(err)
 			return
 		}
-		c.LastMessage = m
-		//c.IncomingMessage = m
-
-		if reflect.DeepEqual(c.User, models.User{}) || c.User.Banned {
-			{
-				switch c.IncomingMessage.Command {
-				case "validate_token":
-					c.ValidateToken()
-					break
-				case "whoami":
-					c.LastMessage.Data["user"] = c
-					c.SendMessage()
-					break
-				case "login":
-					c.Login()
-					break
-				case "sign_up":
-					c.SignUp()
-					break
-				case "count_client":
-					c.LastMessage.Data["len"] = len(controller.Hub)
-					c.SendMessage()
-					break
-				case "quit":
-					delete(controller.Hub, c.UUID)
-					err := ws.Close()
-					if err != nil {
-						engine.Debug.Println(err)
-						break
-					}
-					return
-				default:
-					c.LastMessage.Data["error"] = "command invalid or access denied, please try again"
-					c.SendMessage()
-				}
+		c.LastMessage = c.IncomingMessage
+		switch c.IncomingMessage.Command {
+		case "whoami":
+			c.LastMessage.Data["user"] = c
+			c.SendMessage()
+			break
+		case "validate_token":
+			c.ValidateToken()
+			break
+		case "count_client":
+			c.LastMessage.Data["message"] = len(controller.Hub)
+			c.SendMessage()
+		case "message":
+			c.ValidateAndExecute(c.MessageController)
+			break
+		case "get_post_from_id":
+			c.ValidateAndExecute(c.GetPost)
+		case "update_user":
+			c.ValidateAndExecute(c.UpdateUser)
+			break
+		case "delete_user":
+			c.ValidateAndExecute(c.DeleteUser)
+			break
+		case "retrieve_user":
+			c.ValidateAndExecute(c.RetrieveUser)
+			break
+		case "init_user_reset":
+			c.ValidateAndExecute(c.InitUserReset)
+			break
+		case "complete_user_reset":
+			c.ValidateAndExecute(c.CompleteReset)
+			break
+		case "follow_user":
+			c.ValidateAndExecute(c.FollowUser)
+			break
+		case "unfollow_user":
+			c.ValidateAndExecute(c.UnfollowUser)
+			break
+		case "quit":
+			delete(controller.Hub, c.UUID)
+			err := ws.Close()
+			if err != nil {
+				engine.Debug.Println(err)
+				break
 			}
-		} else {
-			switch c.IncomingMessage.Command {
-			case "whoami":
-				c.LastMessage.Data["user"] = c
-				c.SendMessage()
-				break
-			case "validate_token":
-				c.ValidateToken()
-				break
-			case "count_client":
-				c.LastMessage.Data["message"] = len(controller.Hub)
-				c.SendMessage()
-			case "message":
-				c.MessageController()
-				break
-			case "get_post_from_id":
-				if !c.CheckClientIsSync() {
-					c.LastMessage.Data["alert"] = "Please sync your client before request posts"
-					c.SendMessage()
-					break
-				}
-				postID := int(c.IncomingMessage.Data["postID"].(float64))
-				post, err := client.GetPost(postID)
-				if err != nil {
-					engine.Warning.Println(err)
-					c.LastMessage.Data["error"] = err.Error()
-					c.SendMessage()
-					break
-				}
-				c.LastMessage.Data["post"] = post
-				c.SendMessage()
-			case "logout":
-				c.User = models.User{}
-				break
-			case "update_user":
-				c.UpdateUser()
-				break
-			case "delete_user":
-				c.DeleteUser()
-				break
-			case "retrieve_user":
-				c.RetrieveUser()
-				break
-			case "init_user_reset":
-				c.InitUserReset()
-				break
-			case "complete_user_reset":
-				c.CompleteReset()
-				break
-			case "follow_user":
-				c.FollowUser()
-				break
-			case "unfollow_user":
-				c.UnfollowUser()
-				break
-			case "quit":
-				delete(controller.Hub, c.UUID)
-				err := ws.Close()
-				if err != nil {
-					engine.Debug.Println(err)
-					break
-				}
-				return
-			default:
-				c.LastMessage.Data["error"] = "command invalid, please try again"
-				c.SendMessage()
-			}
+			return
+		default:
+			c.LastMessage.Data["error"] = "command invalid, please try again"
+			c.SendMessage()
 		}
-
 		c.IncomingMessage = controller.Message{}
 	}
 }
@@ -191,20 +122,20 @@ func GenerateClient(ws *websocket.Conn, addr string) (controller.Client, error) 
 	return newClient, nil
 }
 
-func ReadMessage(ws *websocket.Conn) (controller.Message, error) {
+func ReadMessage(ws *websocket.Conn, dest interface{}) error {
 	engine.Debug.Println("New Incoming message")
 	//engine.Debug.Printf("Client, %d sent another request %d", message.RequestID, message.RequestID)
-	var message controller.Message
 	//Read Message from client
 	_, m, err := ws.ReadMessage()
 	if err != nil {
 		engine.Warning.Println(err)
-		return controller.Message{}, err
+		return err
 	}
 
-	err = json.Unmarshal(m, &message)
+	err = json.Unmarshal(m, &dest)
 	if err != nil {
 		engine.Warning.Println(err)
+		return err
 	}
-	return message, nil
+	return nil
 }

@@ -5,13 +5,11 @@ import (
 	"neft.web/models"
 )
 
-// GetPost GET /post/:id
+// GetPost
 // Obtain the post id compare to the user, and return it
 func (client *Client) GetPost() {
 
-	post := &models.Post{}
-
-	err := client.GetInterfaceFromMap("user_to_follow", post)
+	post, err := client.GetPostFromRequest()
 	if err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err.Error()
@@ -26,6 +24,7 @@ func (client *Client) GetPost() {
 		client.SendMessage()
 		return
 	}
+
 	client.LastMessage.Data["post"] = post
 	client.SendMessage()
 }
@@ -34,15 +33,14 @@ func (client *Client) GetPost() {
 // Receive a JSON with a valid post and create it
 func (client *Client) CreatePost() {
 
-	post := &models.Post{}
-	// Obtain the body in the request and parse to the user
-	if err := client.GetInterfaceFromMap("post", post); err != nil {
+	post, err := client.GetPostFromRequest()
+
+	if err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err
 		client.SendMessage()
 		return
 	}
-
 	// Create post
 	post.UserID = client.User.ID
 

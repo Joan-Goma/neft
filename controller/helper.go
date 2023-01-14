@@ -16,23 +16,40 @@ import (
 )
 
 type Client struct {
-	UUID            uuid.UUID       `json:"UUID, omitempty"`
+	UUID            uuid.UUID       `json:"UUID,omitempty"`
 	Addr            string          `json:"-"`
-	User            models.User     `json:"user, omitempty"`
+	User            models.User     `json:"user,omitempty"`
 	Sync            *sync.Mutex     `json:"-"`
 	WS              *websocket.Conn `json:"-"`
 	LastMessage     Message         `json:"-"`
 	IncomingMessage Message         `json:"-"`
-	Token           string          `json:"token, omitempty"`
+	Token           string          `json:"token,omitempty"`
 }
 
 type Message struct {
 	RequestID int64                  `json:"request_id,omitempty"`
 	Command   string                 `json:"command"`
-	Data      map[string]interface{} `json:"data, omitempty"`
+	Data      map[string]interface{} `json:"data,omitempty"`
 }
 
-//Login Authenticate the user from the request message
+type clientCommandExecution func()
+
+func (client *Client) ValidateAndExecute(functionToExecute clientCommandExecution) {
+
+	if client.User.Banned {
+		client.LastMessage.Data["error"] = "You are banned"
+		client.SendMessage()
+		return
+	} else if client.Token == "" {
+		client.LastMessage.Data["error"] = "please log in first"
+		client.SendMessage()
+		return
+	}
+
+	functionToExecute()
+}
+
+// Login Authenticate the user from the request message
 func (client *Client) Login() {
 
 	claims, err := auth.ReturnClaims(client.Token)
@@ -53,12 +70,12 @@ func (client *Client) AssignUserToClient(user models.User) error {
 	return nil
 }
 
-//RegisterToPool Add this client to the general pool
+// RegisterToPool Add this client to the general pool
 func (client *Client) RegisterToPool() {
 	Hub[client.UUID] = client
 }
 
-//CheckClientIsSync Check if the user of client is not null
+// CheckClientIsSync Check if the user of client is not null
 func (client *Client) CheckClientIsSync() bool {
 	if reflect.DeepEqual(client.User, models.User{}) {
 		return false
@@ -88,7 +105,7 @@ var (
 	Lobby = make(chan models.UserMessage)
 )
 
-//StartMessageServer This loop will update the client messages every time someone sends
+// StartMessageServer This loop will update the client messages every time someone sends
 func (client *Client) StartMessageServer() {
 	for {
 		select {
@@ -117,7 +134,7 @@ func (client *Client) StartMessageServer() {
 	}
 }
 
-//MessageController Control the desired message to send all users or single user
+// MessageController Control the desired message to send all users or single user
 func (client *Client) MessageController() {
 	if !client.CheckClientIsSync() {
 		client.LastMessage.Data["error"] = "Please sync your client before sending messages"
@@ -154,8 +171,8 @@ func (client *Client) MessageController() {
 	}
 }
 
-//GetUserFromMap Return an user and error from the message request
-func (client *Client) GetUserFromMap() (models.User, error) {
+// GetUserFromRequest Return a user and error from the message request
+func (client *Client) GetUserFromRequest() (models.User, error) {
 	var user models.User
 	// Convert map to json string
 	jsonStr, err := json.Marshal(client.IncomingMessage.Data["user"])
@@ -176,7 +193,29 @@ func (client *Client) GetUserFromMap() (models.User, error) {
 	return user, nil
 }
 
-//GetInterfaceFromMap Search from the message request and save it into dest
+// GetPostFromRequest Return a post and error from the message request
+func (client *Client) GetPostFromRequest() (models.Post, error) {
+	var post models.Post
+	// Convert map to json string
+	jsonStr, err := json.Marshal(client.IncomingMessage.Data["post"])
+	if err != nil {
+		engine.Debug.Println(err)
+		client.LastMessage.Data["error"] = err.Error()
+		client.SendMessage()
+		return models.Post{}, err
+	}
+
+	// Obtain the body in the request and parse to the user
+	if err := json.Unmarshal(jsonStr, &post); err != nil {
+		engine.Warning.Println(err)
+		client.LastMessage.Data["error"] = engine.ERR_INVALID_JSON
+		client.SendMessage()
+		return models.Post{}, err
+	}
+	return post, nil
+}
+
+// GetInterfaceFromMap Search from the message request and save it into dest
 func (client *Client) GetInterfaceFromMap(position string, dest interface{}) error {
 	// Convert map to json string
 	jsonStr, err := json.Marshal(client.IncomingMessage.Data[position])
@@ -221,7 +260,7 @@ func (client *Client) ValidateToken() {
 	client.Token = token
 	client.Login()
 }
-func (c *Client) CheckToken() {
+func (client *Client) CheckToken() {
 	////m := rand.Intn(20)
 	ticker := time.NewTicker(1 * time.Minute)
 	done := make(chan bool)
@@ -231,8 +270,8 @@ func (c *Client) CheckToken() {
 		case <-done:
 			return
 		case <-ticker.C:
-			c.LastMessage.Command = "temporal_login"
-			c.SendMessage()
+			//client.LastMessage.Command = "temporal_login"
+			//client.SendMessage()
 		}
 	}
 }

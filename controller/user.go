@@ -12,7 +12,7 @@ func (client *Client) UpdateUser() {
 
 	var newUser models.User
 
-	newUser, err := client.GetUserFromMap()
+	newUser, err := client.GetUserFromRequest()
 	if err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err
@@ -42,7 +42,7 @@ func (client *Client) UpdateUser() {
 func (client *Client) DeleteUser() {
 	var user models.User
 
-	user, err := client.GetUserFromMap()
+	user, err := client.GetUserFromRequest()
 	if err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err
@@ -73,7 +73,7 @@ func (client *Client) DeleteUser() {
 // RetrieveUser Obtain the user from the json request and search it by ID
 func (client *Client) RetrieveUser() {
 
-	user, err := client.GetUserFromMap()
+	user, err := client.GetUserFromRequest()
 	if err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err
@@ -95,7 +95,7 @@ func (client *Client) RetrieveUser() {
 
 // SignUp Register a new user
 func (client *Client) SignUp() {
-	user, err := client.GetUserFromMap()
+	user, err := client.GetUserFromRequest()
 	if err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err
@@ -119,7 +119,7 @@ func (client *Client) SignUp() {
 // InitUserReset Initiate the process of restore a password
 func (client *Client) InitUserReset() {
 
-	user, err := client.GetUserFromMap()
+	user, err := client.GetUserFromRequest()
 	if err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err
@@ -148,7 +148,7 @@ type CompletePasswdReset struct {
 
 // CompleteReset Use this controller to complete the password reset with token
 func (client *Client) CompleteReset() {
-	user, err := client.GetUserFromMap()
+	user, err := client.GetUserFromRequest()
 	if err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err
