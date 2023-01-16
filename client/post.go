@@ -19,14 +19,6 @@ func NewPosts(db models.PostDB) *Posts {
 	}
 }
 
-type PostFunctions interface {
-	GetPost()
-}
-
-type PostController struct {
-	PostFunctions
-}
-
 // GetPost GET /post/:id
 // Obtain the post id compare to the user, and return it
 func GetPost(id int) (*models.Post, error) {

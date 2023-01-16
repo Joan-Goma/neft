@@ -63,7 +63,7 @@ func (post *Post) Update() error {
 
 func (post *Post) ByID() error {
 	if err := gormPost.db.Where("id = ?", post.ID).Preload("User").First(post).Error; err != nil {
-		return err
+		return engine.ERR_NOT_FOUND
 	}
 
 	if err := post.User.CountFollowings(); err != nil {
