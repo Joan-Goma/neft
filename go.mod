@@ -1,6 +1,7 @@
 module neft.web
 
-go 1.17
+go 1.19
+
 
 require (
 	github.com/JoanGTSQ/api v1.0.3
@@ -8,7 +9,6 @@ require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/jinzhu/gorm v1.9.16
 	github.com/lib/pq v1.10.7
-	github.com/mitchellh/mapstructure v1.5.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/shopspring/decimal v1.3.1
 	golang.org/x/crypto v0.5.0

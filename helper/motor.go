@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"sync"
+	"time"
 
 	engine "github.com/JoanGTSQ/api"
 	"github.com/gin-gonic/gin"
@@ -28,7 +29,11 @@ func ControlWebsocket(context *gin.Context) {
 		engine.Warning.Println(err)
 		return
 	}
-
+	err = ws.SetReadDeadline(time.Now().Add(45 * time.Minute))
+	if err != nil {
+		engine.Warning.Println("Could not set dead time out for the new client", err)
+		return
+	}
 	defer ws.Close()
 
 	engine.Debug.Println("New client connected!")
@@ -109,12 +114,16 @@ func GenerateClient(ws *websocket.Conn, addr string) (controller.Client, error) 
 	if controller.Hub[u] != nil {
 		u = uuid.NewV4()
 	}
+	mTemplate := make(map[string]interface{})
+	message := controller.Message{Data: mTemplate}
 	newClient := controller.Client{
-		UUID: u,
-		Addr: addr,
-		WS:   ws,
-		User: models.User{},
-		Sync: &sync.Mutex{},
+		UUID:            u,
+		Addr:            addr,
+		WS:              ws,
+		LastMessage:     message,
+		IncomingMessage: message,
+		User:            models.User{},
+		Sync:            &sync.Mutex{},
 	}
 	newClient.RegisterToPool()
 	go newClient.StartMessageServer()

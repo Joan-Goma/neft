@@ -12,7 +12,6 @@ import (
 )
 
 var (
-	isProd  bool
 	port    string
 	debug   bool
 	debugDB bool
@@ -22,11 +21,10 @@ var (
 const version = "CERBERUS 2.0"
 
 func init() {
-	flag.BoolVar(&isProd, "isProd", false, "This will ensure all pro vars are enabled")
-	flag.BoolVar(&debug, "debug", false, "This will export all stats to file log.log")
-	flag.BoolVar(&debugDB, "debugDB", false, "This will enable logs of db")
-	flag.StringVar(&port, "port", ":8080", "This will set the port of use")
-	flag.StringVar(&route, "route", "log.txt", "This will create the log file in the desired route")
+	flag.BoolVar(&debug, "debug", false, "Enable debug prints")
+	flag.BoolVar(&debugDB, "debugDB", false, "Enable logs of database")
+	flag.StringVar(&port, "port", ":8080", "Set the port of the web server")
+	flag.StringVar(&route, "route", "log.txt", "Set the log route and the file name")
 	gin.SetMode(gin.ReleaseMode)
 	flag.Parse()
 	engine.InitLog(debug, route, version)
