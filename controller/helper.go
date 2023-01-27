@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"runtime"
 	"sync"
 	"time"
 
@@ -26,15 +27,6 @@ type Client struct {
 	Token           string          `json:"token,omitempty"`
 }
 
-type C interface {
-	Client
-	test
-}
-
-type test interface {
-	ValidateAndExecute()
-}
-
 type Message struct {
 	RequestID int64                  `json:"request_id,omitempty"`
 	Command   string                 `json:"command"`
@@ -42,6 +34,10 @@ type Message struct {
 }
 
 type clientCommandExecution func()
+
+func getFunctionName(i interface{}) string {
+	return runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
+}
 
 func (client *Client) ValidateAndExecute(functionToExecute clientCommandExecution) {
 
@@ -54,7 +50,7 @@ func (client *Client) ValidateAndExecute(functionToExecute clientCommandExecutio
 		client.SendMessage()
 		return
 	}
-
+	engine.Debug.Println("new command executed:", getFunctionName(functionToExecute))
 	functionToExecute()
 }
 
