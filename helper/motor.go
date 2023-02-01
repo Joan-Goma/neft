@@ -53,6 +53,9 @@ func ControlWebsocket(context *gin.Context) {
 
 		if err != nil {
 			engine.Warning.Println(err)
+			c.LastMessage.Command = "invalid_message"
+			c.LastMessage.Data["error"] = "server could not read correctly the message received, please try again"
+			c.SendMessage()
 			return
 		}
 		c.LastMessage = c.IncomingMessage
