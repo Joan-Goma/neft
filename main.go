@@ -17,7 +17,7 @@ var (
 	route   string
 )
 
-const version = "CERBERUS 2.0"
+const version = "CERBERUS 2.2"
 
 func init() {
 	flag.BoolVar(&debug, "debug", false, "Enable debug prints")
