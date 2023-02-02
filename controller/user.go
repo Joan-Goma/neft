@@ -2,15 +2,46 @@ package controller
 
 import (
 	"fmt"
+	"neft.web/auth"
 
 	engine "github.com/JoanGTSQ/api"
 	"neft.web/models"
 )
 
+func (client *Client) Login() {
+
+	user, err := client.GetUserFromRequest()
+	if err != nil {
+		engine.Warning.Println(err)
+		client.LastMessage.Data["error"] = err.Error()
+		client.SendMessage()
+		return
+	}
+	err = user.Authenticate()
+	if err != nil {
+		engine.Warning.Println(err)
+		client.LastMessage.Data["error"] = err.Error()
+		client.SendMessage()
+		return
+	}
+
+	// Generate  JWT Token
+	tokenString, err := auth.GenerateJWT(user)
+	if err != nil {
+		engine.Warning.Println(err)
+		client.LastMessage.Data["error"] = err.Error()
+		client.SendMessage()
+		return
+	}
+
+	client.User = user
+	client.LastMessage.Data["message"] = "login succesful"
+	client.LastMessage.Data["token"] = tokenString
+	client.SendMessage()
+}
+
 // UpdateUser Get the user from the json request, compare ID and update it
 func (client *Client) UpdateUser() {
-
-	var newUser models.User
 
 	newUser, err := client.GetUserFromRequest()
 	if err != nil {

@@ -7,7 +7,6 @@ import (
 
 	engine "github.com/JoanGTSQ/api"
 	"github.com/gin-gonic/gin"
-	"neft.web/client"
 	"neft.web/middlewares"
 	"neft.web/models"
 )
@@ -17,7 +16,7 @@ func InitDB(debugdb bool) error {
 	// Create connection with DB
 	engine.Debug.Println("Creating connection with DB")
 	var err error
-	client.Services, err = models.NewServices(fmt.Sprintf(
+	err = models.NewServices(fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
 		database.URL,
 		5432,
@@ -35,15 +34,15 @@ func InitDB(debugdb bool) error {
 // InitRouter Generate a router with directions and middlewares
 func InitRouter() *gin.Engine {
 	engine.Debug.Println("Creating gin router")
-	controllersR := client.Controllers{
-		Users:   client.NewUsers(client.Services.User),
-		Posts:   client.NewPosts(client.Services.Post),
-		Devices: client.NewDevices(client.Services.Device),
-	}
-	client.UsersAuth = controllersR.Users
+	//controllersR := client.Controllers{
+	//	Users:   client.NewUsers(client.Services.User),
+	//	Posts:   client.NewPosts(client.Services.Post),
+	//	Devices: client.NewDevices(client.Services.Device),
+	//}
+	//client.UsersAuth = controllersR.Users
 	router := gin.New()
 	router.Use(middlewares.CORSMiddleware())
-	api := router.Group("/v1")
+	/*api := router.Group("/v1")
 	{
 		api.POST("/auth", controllersR.Users.Login)
 		api.PUT("/auth", controllersR.Users.RegisterUser)
@@ -63,7 +62,7 @@ func InitRouter() *gin.Engine {
 			secured.DELETE("/post/comment/:id", controllersR.Posts.Uncomment)
 		}
 	}
-
+	*/
 	beta := router.Group("/beta")
 	{
 		beta.GET("/websocket", ControlWebsocket)

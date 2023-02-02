@@ -12,34 +12,26 @@ type Pagination struct {
 	Sort  string `json:"sort"`
 }
 
-func NewServices(connectionInfo string, logMode bool) (*Services, error) {
+func NewServices(connectionInfo string, logMode bool) error {
 	db, err := gorm.Open("postgres", connectionInfo)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	db.LogMode(logMode)
-
-	return &Services{
-		User:     NewUserService(db),
-		Spot:     NewSpotService(db),
-		Category: NewCategoryService(db),
-		Post:     NewPostService(db),
-		Device:   NewDeviceService(db),
-		Role:     NewRoleService(db),
-		Message:  NewMessageService(db),
-		db:       db,
-	}, nil
+	DBCONNECTION = db
+	NewUserService(db)
+	NewCategoryService(db)
+	NewDeviceService(db)
+	return nil
 }
 
+var DBCONNECTION *gorm.DB
+
 type Services struct {
-	Spot     SpotService
 	User     UserService
 	Category CategoryService
-	Post     PostService
 	Device   DeviceService
-	Message  MessageService
-	Role     RoleService
 	db       *gorm.DB
 }
 
@@ -47,41 +39,17 @@ func (s *Services) Close() error {
 	return s.db.Close()
 }
 
-func (s *Services) DestructiveReset() error {
-	if err := s.db.DropTableIfExists(&UserMessage{}, &Category{}, &pwReset{}, &Role{}, &User{}, &Spot{}, &Comment{}, &Post{},
+func DestructiveReset() error {
+	if err := DBCONNECTION.DropTableIfExists(&UserMessage{}, &Category{}, &pwReset{}, &Role{}, &User{}, &Spot{}, &Comment{}, &Post{},
 		&Device{}).Error; err != nil {
 		return err
 	}
-	return s.AutoMigrate()
+	return AutoMigrate()
 }
 
-func (s *Services) DestructiveStatic() error {
-	if err := s.db.DropTableIfExists().Error; err != nil {
-		return err
-	}
-	if err := s.AutoMigrate(); err != nil {
-		return err
-	}
-	r1 := &Role{
-		RoleName: "User",
-	}
-	r2 := &Role{
-		RoleName:    "Moderator",
-		CanBanUsers: true,
-	}
-	r3 := &Role{
-		RoleName:    "Moderator",
-		CanBanUsers: true,
-	}
-	s.db.Model(&Role{}).Create(r1)
-	s.db.Model(&Role{}).Create(r2)
-	s.db.Model(&Role{}).Create(r3)
-	return nil
-}
+func AutoMigrate() error {
 
-func (s *Services) AutoMigrate() error {
-
-	if err := s.db.AutoMigrate(&User{}, &UserMessage{}, &Role{}, &pwReset{}, &Category{}, &Spot{}, &Comment{}, &Post{},
+	if err := DBCONNECTION.AutoMigrate(&User{}, &UserMessage{}, &Role{}, &pwReset{}, &Category{}, &Spot{}, &Comment{}, &Post{},
 		&Device{}).Error; err != nil {
 		return err
 	}

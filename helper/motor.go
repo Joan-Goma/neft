@@ -3,6 +3,7 @@ package helper
 import (
 	"encoding/json"
 	"net/http"
+	"reflect"
 	"sync"
 	"time"
 
@@ -34,13 +35,23 @@ func ControlWebsocket(context *gin.Context) {
 		engine.Warning.Println("Could not set dead time out for the new client", err)
 		return
 	}
-	defer ws.Close()
+	defer func(ws *websocket.Conn) {
+		err := ws.Close()
+		if err != nil {
+			engine.Warning.Println("Can not close this connection")
+			return
+		}
+	}(ws)
 
 	engine.Debug.Println("New client connected!")
 	c, err := GenerateClient(ws, ws.RemoteAddr().String())
 
 	if err != nil {
-		ws.Close()
+		err := ws.Close()
+		if err != nil {
+			engine.Warning.Println("Can not close this connection")
+			return
+		}
 		engine.Warning.Println("error generating new client", err)
 	}
 
@@ -60,15 +71,25 @@ func ControlWebsocket(context *gin.Context) {
 		}
 		c.LastMessage = c.IncomingMessage
 		switch c.IncomingMessage.Command {
+		case "login":
+			c.Login()
+			break
+		case "sign_up":
+			c.SignUp()
+			break
 		case "whoami":
-			c.LastMessage.Data["user"] = c
+			if !reflect.DeepEqual(c.User, models.User{}) {
+				c.LastMessage.Data["user"] = &c.User
+			} else {
+				c.LastMessage.Data["error"] = "you are not logged"
+			}
 			c.SendMessage()
 			break
 		case "validate_token":
 			c.ValidateToken()
 			break
 		case "count_client":
-			c.LastMessage.Data["message"] = len(controller.Hub)
+			c.LastMessage.Data["clients_in_pool"] = len(controller.Hub)
 			c.SendMessage()
 		case "message":
 			c.ValidateAndExecute(c.MessageController)
@@ -108,7 +129,12 @@ func ControlWebsocket(context *gin.Context) {
 			c.LastMessage.Data["error"] = "command invalid, please try again"
 			c.SendMessage()
 		}
-		c.IncomingMessage = controller.Message{}
+		//c.IncomingMessage = controller.Message{}
+		data := make(map[string]interface{})
+		cM := controller.Message{
+			Data: data,
+		}
+		c.IncomingMessage = cM
 	}
 }
 

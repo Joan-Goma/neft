@@ -9,15 +9,7 @@ import (
 	"neft.web/models"
 )
 
-type Controllers struct {
-	Users   *Users
-	Posts   *Posts
-	Devices *Devices
-}
-
 var (
-	UsersAuth   *Users
-	Services    *models.Services
 	ResponseMap = make(map[string]interface{})
 	response    = engine.Response{}
 )
@@ -43,13 +35,6 @@ func handleError(err error, c *gin.Context) {
 		Response:     ResponseMap,
 	}
 	response.SendAnswer()
-}
-
-// getUserFromToken take the context header "neftAuth" and search the user by the email
-func getUserFromContext(context *gin.Context) (*models.User, error) {
-	// Obtain data from JWT token
-	tokenNeft := context.GetHeader("neftAuth")
-	return GetUserFromToken(tokenNeft)
 }
 
 func GetUserFromToken(token string) (*models.User, error) {

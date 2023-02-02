@@ -20,14 +20,14 @@ type JWTClaim struct {
 	jwt.StandardClaims
 }
 
-func GenerateJWT(user *models.User) (tokenString string, err error) {
+func GenerateJWT(user models.User) (tokenString string, err error) {
 	tokenID, err := uuid.NewRandom()
 	if err != nil {
 		return "", err
 	}
 	claims := &JWTClaim{
 		Context: Context{
-			User: *user,
+			User: user,
 		},
 		StandardClaims: jwt.StandardClaims{
 			Id:        tokenID.String(),

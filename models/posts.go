@@ -2,49 +2,11 @@ package models
 
 import (
 	engine "github.com/JoanGTSQ/api"
-	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
 )
 
-type PostDB interface {
-	//AllPosts(pagination Pagination, userID uint) ([]*Post, error)
-	//Count() (int, error)
-}
-
-type PostService interface {
-	PostDB
-}
-
-var gormPost postGorm
-
-func newPostGorm(db *gorm.DB) (*postGorm, error) {
-	gormPost.db = db
-	return &postGorm{
-		db: db,
-	}, nil
-}
-func NewPostService(gD *gorm.DB) PostService {
-	ug, err := newPostGorm(gD)
-	if err != nil {
-		return nil
-	}
-	return &postService{
-		PostDB: ug,
-	}
-}
-
-type postService struct {
-	PostDB
-}
-
-var _ PostDB = &postGorm{}
-
-type postGorm struct {
-	db *gorm.DB
-}
-
 func (post *Post) Create() error {
-	err := gormPost.db.Create(post).Error
+	err := DBCONNECTION.Create(post).Error
 	if err != nil {
 		return err
 	}
@@ -52,17 +14,17 @@ func (post *Post) Create() error {
 }
 
 func (post *Post) Delete() error {
-	return gormPost.db.Delete(&post).Error
+	return DBCONNECTION.Delete(&post).Error
 }
 
 func (post *Post) Update() error {
-	return gormPost.db.Save(post).Error
+	return DBCONNECTION.Save(post).Error
 }
 
 // SEARCH BY ID
 
 func (post *Post) ByID() error {
-	if err := gormPost.db.Where("id = ?", post.ID).Preload("User").First(post).Error; err != nil {
+	if err := DBCONNECTION.Where("id = ?", post.ID).Preload("User").First(post).Error; err != nil {
 		return engine.ERR_NOT_FOUND
 	}
 
@@ -83,9 +45,10 @@ func (post *Post) ByID() error {
 	return nil
 }
 
+// AllPosts search in the entire database with the pagination and save all the results
 func (mp *MultiplePost) AllPosts(userID uint) error {
 	offset := (mp.Pagination.Page - 1) * mp.Pagination.Limit
-	err := gormPost.db.Offset(offset).Limit(mp.Pagination.Limit).Order(mp.Pagination.Sort).Where("user_id = ?", userID).Preload("User").Find(&mp.Posts).Error
+	err := DBCONNECTION.Offset(offset).Limit(mp.Pagination.Limit).Order(mp.Pagination.Sort).Where("user_id = ?", userID).Preload("User").Find(&mp.Posts).Error
 	for _, p := range mp.Posts {
 		if err := p.User.CountFollowers(); err != nil {
 			return err
@@ -101,8 +64,9 @@ func (mp *MultiplePost) AllPosts(userID uint) error {
 	return err
 }
 
+// Count count all the matches posible in the database
 func (mp *MultiplePost) Count() error {
-	err := gormPost.db.Table("posts").Count(&mp.Quantity).Error
+	err := DBCONNECTION.Table("posts").Count(&mp.Quantity).Error
 	return err
 }
 
@@ -119,7 +83,7 @@ func (post *Post) Unban() error {
 }
 
 func (post *Post) CountLikes() error {
-	post.LikesReceived = gormPost.db.Model(&post).Association("Likes").Count()
+	post.LikesReceived = DBCONNECTION.Model(&post).Association("Likes").Count()
 	return nil
 }
 
@@ -138,7 +102,7 @@ func (post *Post) Like(friendID uint) error {
 }
 
 // Unlike delete the comment and Delete from the association
-func (post Post) Unlike(friendID uint) error {
+func (post *Post) Unlike(friendID uint) error {
 	liker := &User{
 		ID: friendID,
 	}
@@ -155,25 +119,25 @@ func (post Post) Unlike(friendID uint) error {
 // Comment create the comment and add append it with the post ID
 func (post *Post) Comment(comment *Comment) error {
 
-	gormPost.db.Create(comment)
+	DBCONNECTION.Create(comment)
 
-	gormPost.db.First(&post, "id = ?", post.ID)
-	return gormPost.db.Model(&post).Association("post_comments").Append(comment).Error
+	DBCONNECTION.First(&post, "id = ?", post.ID)
+	return DBCONNECTION.Model(&post).Association("post_comments").Append(comment).Error
 }
 
 // Uncomment delete the comment and Delete from the association
-func (post Post) Uncomment(comment *Comment) error {
-	gormPost.db.First(comment, "id = ?", comment.ID)
-	gormPost.db.Delete(comment)
-	gormPost.db.Preload("Friends").First(&post, "id = ?", post.ID)
-	gormPost.db.Model(&post).Association("post_comments").Delete(comment)
+func (post *Post) Uncomment(comment *Comment) error {
+	DBCONNECTION.First(comment, "id = ?", comment.ID)
+	DBCONNECTION.Delete(comment)
+	DBCONNECTION.Preload("Friends").First(&post, "id = ?", post.ID)
+	DBCONNECTION.Model(&post).Association("post_comments").Delete(comment)
 	return nil
 }
 
 // GetComments Get all comments from a post
 func (post *Post) GetComments() error {
 
-	gormPost.db.
+	DBCONNECTION.
 		Preload("PostComments").
 		Preload("PostComments.User").
 		First(&post, "id = ?", post.ID)

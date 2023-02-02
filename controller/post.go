@@ -5,8 +5,7 @@ import (
 	"neft.web/models"
 )
 
-// GetPost
-// Obtain the post id compare to the user, and return it
+// GetPost Obtain the post id compare to the user, and return it
 func (client *Client) GetPost() {
 
 	post, err := client.GetPostFromRequest()
@@ -29,8 +28,7 @@ func (client *Client) GetPost() {
 	client.SendMessage()
 }
 
-// CreatePost PUT /post
-// Receive a JSON with a valid post and create it
+// CreatePost Receive a JSON with a valid post and create it
 func (client *Client) CreatePost() {
 
 	post, err := client.GetPostFromRequest()
@@ -56,47 +54,36 @@ func (client *Client) CreatePost() {
 	client.SendMessage()
 }
 
-// RetrieveAllPost GET /posts
-// Return all posts from the user checked in the neftAuth token
-//func (pts *Posts) RetrieveAllPost() {
-//
-//	// Create pagination
-//	count, err := pts.pdb.Count()
-//	if err != nil {
-//		engine.Warning.Println(err)
-//		handleError(err, context)
-//		return
-//	}
-//	pagination, links := GeneratePaginationFromRequest(context, count)
-//
-//	// Check and return user from token
-//	user, err := getUserFromContext(context)
-//	if err != nil {
-//		engine.Warning.Println(err)
-//		handleError(err, context)
-//		return
-//	}
-//
-//	// Retrieve all posts data
-//	posts, err := pts.pdb.AllPosts(pagination, user.ID)
-//	if err != nil {
-//		engine.Warning.Println(err)
-//		handleError(err, context)
-//		return
-//	}
-//
-//	ResponseMap["data"] = posts
-//	ResponseMap["links"] = links
-//	response = engine.Response{
-//		ResponseCode: http.StatusOK,
-//		Context:      context,
-//		Response:     ResponseMap,
-//	}
-//	response.SendAnswer()
-//}
+// RetrieveAllPost Return all posts
+func (client *Client) RetrieveAllPost() {
+	var mp *models.MultiplePost
+	// Create pagination
+	err := mp.Count()
+	if err != nil {
+		engine.Warning.Println(err)
+		client.LastMessage.Data["error"] = err.Error()
+		client.SendMessage()
+		return
+	}
+	var links Links
+	mp.Pagination, links = client.GeneratePaginationFromRequest(int(mp.Quantity))
 
-// DeletePost DELETE /post
-// Receive a valida post and delete it
+	// Retrieve all posts data
+	err = mp.AllPosts(client.User.ID)
+	if err != nil {
+		engine.Warning.Println(err)
+		client.LastMessage.Data["error"] = err.Error()
+		client.SendMessage()
+		return
+	}
+
+	client.LastMessage.Data["data"] = mp.Posts
+	client.LastMessage.Data["links"] = links
+	client.SendMessage()
+	return
+}
+
+// DeletePost Receive a valida post and delete it
 func (client *Client) DeletePost() {
 	post := &models.Post{}
 
@@ -126,8 +113,7 @@ func (client *Client) DeletePost() {
 	client.SendMessage()
 }
 
-// UpdatePost PATCH /post
-// Receive a valid post and update it
+// UpdatePost Receive a valid post and update it
 func (client *Client) UpdatePost() {
 	post := &models.Post{}
 
@@ -157,8 +143,7 @@ func (client *Client) UpdatePost() {
 	client.SendMessage()
 }
 
-// Comment  POST /user/comment/:id
-// Obtain the remember_hash from the JWT token and return it in JSON
+// CommentPost  Obtain the remember_hash from the JWT token and return it in JSON
 func (client *Client) CommentPost() {
 	post := &models.Post{}
 	err := client.GetInterfaceFromMap("post", post)
@@ -195,8 +180,7 @@ func (client *Client) CommentPost() {
 	client.SendMessage()
 }
 
-// Uncomment  POST /user/uncomment/:id
-// Obtain the remember_hash from the JWT token and return it in JSON
+// UncommentPost Obtain the remember_hash from the JWT token and return it in JSON
 func (client *Client) UncommentPost() {
 	post := &models.Post{}
 
@@ -227,8 +211,7 @@ func (client *Client) UncommentPost() {
 	client.SendMessage()
 }
 
-// Like POST /user/like/:id
-// Obtain the remember_hash from the JWT token and return it in JSON
+// LikePost Obtain the remember_hash from the JWT token and return it in JSON
 func (client *Client) LikePost() {
 
 	// Search the user from the claims by remember hash
@@ -253,8 +236,7 @@ func (client *Client) LikePost() {
 	client.SendMessage()
 }
 
-// Unlike POST /user/like/:id
-// Obtain the remember_hash from the JWT token and return it in JSON
+// UnlikePost Obtain the remember_hash from the JWT token and return it in JSON
 func (client *Client) UnlikePost() {
 
 	post := &models.Post{}

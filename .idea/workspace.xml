@@ -4,17 +4,25 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b55ab9d4-7f18-4127-beb2-0b8c27382938" name="Changes" comment="replace err to err.Error() to avoid nil messages">
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_23_11_2022_21_45__Changes_.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_23_11_2022_21_45__Changes_.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_05_01_2023_14_28_[Changes]/shelved.patch" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_05_01_2023_14_28__Changes_.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_09_01_2023_17_55_[Changes]/shelved.patch" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_09_01_2023_17_55__Changes_.xml" beforeDir="false" />
+    <list default="true" id="b55ab9d4-7f18-4127-beb2-0b8c27382938" name="Changes" comment="add fix for receiving commands and refactor">
+      <change afterPath="$PROJECT_DIR$/controller/pagination.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth/jwt.go" beforeDir="false" afterPath="$PROJECT_DIR$/auth/jwt.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/device.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/helper.go" beforeDir="false" afterPath="$PROJECT_DIR$/client/helper.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/post.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/user.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/controller/helper.go" beforeDir="false" afterPath="$PROJECT_DIR$/controller/helper.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/controller/post.go" beforeDir="false" afterPath="$PROJECT_DIR$/controller/post.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/controller/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/controller/user.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/helper/engine.go" beforeDir="false" afterPath="$PROJECT_DIR$/helper/engine.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/helper/motor.go" beforeDir="false" afterPath="$PROJECT_DIR$/helper/motor.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/clients.go" beforeDir="false" afterPath="$PROJECT_DIR$/models/clients.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/posts.go" beforeDir="false" afterPath="$PROJECT_DIR$/models/posts.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/roles.go" beforeDir="false" afterPath="$PROJECT_DIR$/models/roles.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/services.go" beforeDir="false" afterPath="$PROJECT_DIR$/models/services.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/spots.go" beforeDir="false" afterPath="$PROJECT_DIR$/models/spots.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -168,7 +176,8 @@
     <MESSAGE value="neeeews" />
     <MESSAGE value="little fix" />
     <MESSAGE value="replace err to err.Error() to avoid nil messages" />
-    <option name="LAST_COMMIT_MESSAGE" value="replace err to err.Error() to avoid nil messages" />
+    <MESSAGE value="add fix for receiving commands and refactor" />
+    <option name="LAST_COMMIT_MESSAGE" value="add fix for receiving commands and refactor" />
   </component>
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>

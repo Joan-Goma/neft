@@ -2,13 +2,12 @@ package main
 
 import (
 	"flag"
+	"neft.web/models"
 	"runtime"
 
 	engine "github.com/JoanGTSQ/api"
 	"github.com/gin-gonic/gin"
-	"neft.web/client"
 	"neft.web/helper"
-	"neft.web/models"
 )
 
 var (
@@ -37,21 +36,20 @@ func main() {
 		engine.Error.Fatalln("Can not connect to DB: ", err)
 	}
 
-	defer func(Services *models.Services) {
+	/*defer func(Services *models.Services) {
 		err := Services.Close()
 		if err != nil {
 			engine.Error.Fatalln("Error deferring db close", err)
 		}
-	}(client.Services)
+	}(client.Services)*/
 
 	// Auto generate new tables or modifications in every start | Use DestructiveReset() to delete all data
 
-	if err := client.Services.AutoMigrate(); err != nil {
+	if err := models.AutoMigrate(); err != nil {
 		engine.Error.Fatalln("Can not AutoMigrate the database", err)
 	}
 
 	// Retrieve controllers struct
-	engine.Debug.Println("Creating all services handlers")
 
 	// Generate Router
 	r := helper.InitRouter()
@@ -72,17 +70,16 @@ func main() {
 	var cer = route + "cer.cer"
 	var key = route + "key.key"
 
-	if !debug {
-		// Start server
+	if port == ":443" {
 		engine.Info.Println("Running SSL server on port :443")
 		if err := r.RunTLS(":443", cer, key); err != nil {
 			engine.Error.Fatalln("Error starting web server", err)
 		}
-	} else {
-		engine.Info.Println("Running non SSL server on port", port)
-		if err := r.Run(port); err != nil {
-			engine.Error.Fatalln("Error starting web server", err)
-		}
+	}
+
+	engine.Info.Println("Running non SSL server on port", port)
+	if err := r.Run(port); err != nil {
+		engine.Error.Fatalln("Error starting web server", err)
 	}
 
 }

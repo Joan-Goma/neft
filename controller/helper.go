@@ -54,27 +54,6 @@ func (client *Client) ValidateAndExecute(functionToExecute clientCommandExecutio
 	functionToExecute()
 }
 
-// Login Authenticate the user from the request message
-func (client *Client) Login() {
-
-	claims, err := auth.ReturnClaims(client.Token)
-	if err != nil {
-		client.LastMessage.Data["error"] = "login error"
-		client.SendMessage()
-		return
-	}
-
-	client.User = claims.Context.User
-	client.LastMessage.Data["message"] = "login succesfull! Welcome to the hub!"
-	client.SendMessage()
-}
-
-func (client *Client) AssignUserToClient(user models.User) error {
-	client.User = user
-	engine.Debug.Println("Client sync succesfull!")
-	return nil
-}
-
 // RegisterToPool Add this client to the general pool
 func (client *Client) RegisterToPool() {
 	Hub[client.UUID] = client
@@ -263,7 +242,17 @@ func (client *Client) ValidateToken() {
 		return
 	}
 	client.Token = token
-	client.Login()
+	client.TokenToUser()
+}
+func (client *Client) TokenToUser() {
+	claims, err := auth.ReturnClaims(client.Token)
+	if err != nil {
+		client.LastMessage.Command = "invalid_token"
+		client.LastMessage.Data["error"] = "please try again"
+		return
+	}
+	engine.Debug.Println(claims.Context.User)
+	client.User = claims.Context.User
 }
 func (client *Client) CheckToken() {
 	////m := rand.Intn(20)
