@@ -7,8 +7,8 @@ import (
 )
 
 type PostDB interface {
-	AllPosts(pagination Pagination, userID uint) ([]*Post, error)
-	Count() (int, error)
+	//AllPosts(pagination Pagination, userID uint) ([]*Post, error)
+	//Count() (int, error)
 }
 
 type PostService interface {
@@ -83,29 +83,27 @@ func (post *Post) ByID() error {
 	return nil
 }
 
-func (ug *postGorm) AllPosts(pagination Pagination, userID uint) ([]*Post, error) {
-	var post []*Post
-	offset := (pagination.Page - 1) * pagination.Limit
-	err := ug.db.Offset(offset).Limit(pagination.Limit).Order(pagination.Sort).Where("user_id = ?", userID).Preload("User").Find(&post).Error
-	for _, p := range post {
+func (mp *MultiplePost) AllPosts(userID uint) error {
+	offset := (mp.Pagination.Page - 1) * mp.Pagination.Limit
+	err := gormPost.db.Offset(offset).Limit(mp.Pagination.Limit).Order(mp.Pagination.Sort).Where("user_id = ?", userID).Preload("User").Find(&mp.Posts).Error
+	for _, p := range mp.Posts {
 		if err := p.User.CountFollowers(); err != nil {
-			return nil, err
+			return err
 		}
 		if err := p.CountLikes(); err != nil {
-			return nil, err
+			return err
 		}
 
 		if err := p.GetComments(); err != nil {
-			return nil, err
+			return err
 		}
 	}
-	return post, err
+	return err
 }
 
-func (tg *postGorm) Count() (int, error) {
-	var posts int64
-	err := tg.db.Table("posts").Count(&posts).Error
-	return int(posts), err
+func (mp *MultiplePost) Count() error {
+	err := gormPost.db.Table("posts").Count(&mp.Quantity).Error
+	return err
 }
 
 // Ban a post
@@ -180,6 +178,12 @@ func (post *Post) GetComments() error {
 		Preload("PostComments.User").
 		First(&post, "id = ?", post.ID)
 	return nil
+}
+
+type MultiplePost struct {
+	Pagination Pagination
+	Posts      []*Post
+	Quantity   int64
 }
 
 type Post struct {

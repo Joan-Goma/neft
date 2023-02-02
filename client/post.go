@@ -87,15 +87,17 @@ func (pts *Posts) CreatePost(context *gin.Context) {
 // RetrieveAllPost GET /posts
 // Return all posts from the user checked in the neftAuth token
 func (pts *Posts) RetrieveAllPost(context *gin.Context) {
-
+	var mp *models.MultiplePost
 	// Create pagination
-	count, err := pts.pdb.Count()
+
+	err := mp.Count()
 	if err != nil {
 		engine.Warning.Println(err)
 		handleError(err, context)
 		return
 	}
-	pagination, links := GeneratePaginationFromRequest(context, count)
+	var links Links
+	mp.Pagination, links = GeneratePaginationFromRequest(context, int(mp.Quantity))
 
 	// Check and return user from token
 	user, err := getUserFromContext(context)
@@ -106,14 +108,14 @@ func (pts *Posts) RetrieveAllPost(context *gin.Context) {
 	}
 
 	// Retrieve all posts data
-	posts, err := pts.pdb.AllPosts(pagination, user.ID)
+	err = mp.AllPosts(user.ID)
 	if err != nil {
 		engine.Warning.Println(err)
 		handleError(err, context)
 		return
 	}
 
-	ResponseMap["data"] = posts
+	ResponseMap["data"] = mp.Posts
 	ResponseMap["links"] = links
 	response = engine.Response{
 		ResponseCode: http.StatusOK,

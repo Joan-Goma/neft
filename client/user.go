@@ -27,32 +27,35 @@ func NewUsers(us models.UserService) *Users {
 // RetrieveAllUsers GET /users
 // Return all users in a JSON
 func (us *Users) RetrieveAllUsers(context *gin.Context) {
-	count, err := us.us.Count()
+
+	var mu *models.MultipleUsers
+	err := mu.Count()
 	if err != nil {
 		engine.Warning.Println(err)
 		handleError(err, context)
 		return
 	}
-	pagination, links := GeneratePaginationFromRequest(context, count)
-	if (pagination == models.Pagination{}) && (links == Links{}) {
+	var links Links
+	mu.Pagination, links = GeneratePaginationFromRequest(context, int(mu.Quantity))
+	if (mu.Pagination == models.Pagination{}) && (links == Links{}) {
 		return
 	}
 
 	// Retrieve all users data
-	users, err := us.us.GetAllUsers(pagination)
+	err = mu.GetAllUsers()
 	if err != nil {
 		engine.Warning.Println(err)
 		handleError(err, context)
 		return
 	}
-	if users == nil {
+	if mu.Users == nil {
 		// TODO create handle error
 		engine.Warning.Println(err)
 		handleError(err, context)
 		return
 	}
 	// Close connection returning code 200 and JSON with all users
-	ResponseMap["data"] = users
+	ResponseMap["data"] = mu.Users
 	ResponseMap["links"] = links
 	response = engine.Response{
 		ResponseCode: http.StatusOK,
