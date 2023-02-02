@@ -3,11 +3,10 @@ package models
 import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
+	"github.com/shopspring/decimal"
 )
 
 type SpotDB interface {
-	AllSpots(pagination Pagination, userID uint) ([]*Spot, error)
-	Count() (int, error)
 }
 
 type SpotService interface {
@@ -67,23 +66,32 @@ func (spot *Spot) ByID() error {
 	return nil
 }
 
-func (ug *spotGorm) AllSpots(pagination Pagination, userID uint) ([]*Spot, error) {
-	var spot []*Spot
-	offset := (pagination.Page - 1) * pagination.Limit
-	err := ug.db.Offset(offset).Limit(pagination.Limit).Order(pagination.Sort).Find(&spot).Error
-	return spot, err
+func (spot *Spot) SearchNear(offset uint) error {
+	//TODO make search spots near a location
+	return nil
 }
 
-func (tg *spotGorm) Count() (int, error) {
-	var spots int64
-	err := tg.db.Table("spots").Count(&spots).Error
-	return int(spots), err
+func (ms *MultipleSpots) AllSpots(userID uint) error {
+	offset := (ms.Pagination.Page - 1) * ms.Pagination.Limit
+	err := gormSpot.db.Offset(offset).Limit(ms.Pagination.Limit).Order(ms.Pagination.Sort).Find(&ms.Spots).Error
+	return err
+}
+
+func (ms *MultipleSpots) Count() error {
+	err := gormSpot.db.Table("spots").Count(&ms.Quantity).Error
+	return err
+}
+
+type MultipleSpots struct {
+	Pagination Pagination
+	Spots      []*Spot
+	Quantity   int64
 }
 
 type Spot struct {
 	NeftModel
-	Description string `json:"description"`
-	Latitude    int64  `json:"latitude"`
-	Longitude   int64  `json:"longitude"`
-	Visible     bool   `gorm:"default: true" json:"visible"`
+	Description string          `json:"description"`
+	Latitude    decimal.Decimal `json:"latitude"  sql:"type:decimal(9,8);"`
+	Longitude   decimal.Decimal `json:"longitude" sql:"type:decimal(9,8);"`
+	Visible     bool            `gorm:"default: true" json:"visible"`
 }
