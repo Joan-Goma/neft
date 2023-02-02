@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 	"time"
@@ -19,8 +18,6 @@ const (
 )
 
 type UserDB interface {
-	GetAllUsers(pagination Pagination) ([]*User, error)
-	Count() (int, error)
 }
 
 type UserService interface {
@@ -146,15 +143,15 @@ func first(db *gorm.DB, dst interface{}) error {
 	}
 }
 
-func (ug *userGorm) GetAllUsers(pagination Pagination) ([]*User, error) {
+func (mu *MultipleUsers) GetAllUsers() error {
 
-	offset := (pagination.Page - 1) * pagination.Limit
+	offset := (mu.Pagination.Page - 1) * mu.Pagination.Limit
 	var users []*User
-	err := ug.db.Offset(offset).Limit(pagination.Limit).Order(pagination.Sort).Find(&users).Error
+	err := gormUser.db.Offset(offset).Limit(mu.Pagination.Limit).Order(mu.Pagination.Sort).Find(&users).Error
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return users, nil
+	return nil
 
 }
 
@@ -227,10 +224,9 @@ func (user *User) Ban(isBanned bool) error {
 	return gormUser.db.Model(&User{}).Where("id = ?", user.ID).Update("banned", isBanned).Error
 }
 
-func (ug *userGorm) Count() (int, error) {
-	var users int64
-	err := ug.db.Table("users").Count(&users).Error
-	return int(users), err
+func (mu *MultipleUsers) Count() error {
+	err := gormUser.db.Table("users").Count(&mu.Quantity).Error
+	return err
 }
 
 func (user *User) Follow(friendID uint) error {
@@ -281,8 +277,10 @@ func (user *User) CountFollowers() error {
 	return nil
 }
 
-func (user *User) ToString() string {
-	return fmt.Sprintf("USER: UserName=%v, FullName=%v, Email=&v", user.UserName, user.FullName, user.Email)
+type MultipleUsers struct {
+	Pagination Pagination
+	Users      []*User
+	Quantity   int64
 }
 
 type User struct {
