@@ -95,7 +95,7 @@ func ControlWebsocket(context *gin.Context) {
 			c.ValidateAndExecute(c.MessageController)
 			break
 		case "get_post_from_id":
-			c.ValidateAndExecute(c.GetPost)
+			c.ValidateAndExecuteNew(c.PostFuncs.GetPost)
 		case "update_user":
 			c.ValidateAndExecuteNew(c.UserFuncs.UpdateUser)
 			break
@@ -148,6 +148,7 @@ func GenerateClient(ws *websocket.Conn, addr string) (controller.Client, error) 
 	newClient := controller.Client{
 		UUID:            u,
 		Addr:            addr,
+		PostFuncs:       controller.PostFuncs{},
 		UserFuncs:       controller.UserFuncs{},
 		WS:              ws,
 		LastMessage:     message,

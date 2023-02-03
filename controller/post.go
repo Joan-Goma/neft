@@ -5,8 +5,10 @@ import (
 	"neft.web/models"
 )
 
+type PostFuncs struct{}
+
 // GetPost Obtain the post id compare to the user, and return it
-func (client *Client) GetPost() {
+func (p PostFuncs) GetPost(client *Client) {
 
 	post, err := client.GetPostFromRequest()
 	if err != nil {
@@ -29,7 +31,7 @@ func (client *Client) GetPost() {
 }
 
 // CreatePost Receive a JSON with a valid post and create it
-func (client *Client) CreatePost() {
+func (p PostFuncs) CreatePost(client *Client) {
 
 	post, err := client.GetPostFromRequest()
 
@@ -55,7 +57,7 @@ func (client *Client) CreatePost() {
 }
 
 // RetrieveAllPost Return all posts
-func (client *Client) RetrieveAllPost() {
+func (p PostFuncs) RetrieveAllPost(client *Client) {
 	var mp *models.MultiplePost
 	// Create pagination
 	err := mp.Count()
@@ -84,7 +86,7 @@ func (client *Client) RetrieveAllPost() {
 }
 
 // DeletePost Receive a valida post and delete it
-func (client *Client) DeletePost() {
+func (p PostFuncs) DeletePost(client *Client) {
 	post := &models.Post{}
 
 	// Obtain the body in the request and parse to the user
@@ -114,7 +116,7 @@ func (client *Client) DeletePost() {
 }
 
 // UpdatePost Receive a valid post and update it
-func (client *Client) UpdatePost() {
+func (p PostFuncs) UpdatePost(client *Client) {
 	post := &models.Post{}
 
 	// Obtain the body in the request and parse to the user
@@ -144,7 +146,7 @@ func (client *Client) UpdatePost() {
 }
 
 // CommentPost  Obtain the remember_hash from the JWT token and return it in JSON
-func (client *Client) CommentPost() {
+func (p PostFuncs) CommentPost(client *Client) {
 	post := &models.Post{}
 	err := client.GetInterfaceFromMap("post", post)
 	if err != nil {
@@ -181,7 +183,7 @@ func (client *Client) CommentPost() {
 }
 
 // UncommentPost Obtain the remember_hash from the JWT token and return it in JSON
-func (client *Client) UncommentPost() {
+func (p PostFuncs) UncommentPost(client *Client) {
 	post := &models.Post{}
 
 	if err := client.GetInterfaceFromMap("post", post); err != nil {
@@ -212,7 +214,7 @@ func (client *Client) UncommentPost() {
 }
 
 // LikePost Obtain the remember_hash from the JWT token and return it in JSON
-func (client *Client) LikePost() {
+func (p PostFuncs) LikePost(client *Client) {
 
 	// Search the user from the claims by remember hash
 
@@ -237,7 +239,7 @@ func (client *Client) LikePost() {
 }
 
 // UnlikePost Obtain the remember_hash from the JWT token and return it in JSON
-func (client *Client) UnlikePost() {
+func (p PostFuncs) UnlikePost(client *Client) {
 
 	post := &models.Post{}
 

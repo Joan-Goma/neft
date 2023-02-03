@@ -26,11 +26,12 @@ type Client struct {
 	IncomingMessage Message         `json:"-"`
 	Token           string          `json:"token,omitempty"`
 	UserFuncs       UserFuncs       `json:"-"`
+	PostFuncs       PostFuncs       `json:"-"`
 }
 
 type Message struct {
 	RequestID int64                  `json:"request_id,omitempty"`
-	Command   string                 `json:"command"`
+	Command   string                 `json:"command,omitempty"`
 	Data      map[string]interface{} `json:"data,omitempty"`
 }
 
