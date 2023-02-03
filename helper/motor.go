@@ -56,9 +56,8 @@ func ControlWebsocket(context *gin.Context) {
 	}
 
 	for {
-		engine.Debug.Println("New Incoming message")
 
-		engine.Info.Printf("New request ID: %d", c.LastMessage.RequestID)
+		engine.Debug.Println("new message to proccess")
 
 		err = ReadMessage(ws, &c.IncomingMessage)
 
@@ -70,6 +69,7 @@ func ControlWebsocket(context *gin.Context) {
 			return
 		}
 		c.LastMessage = c.IncomingMessage
+
 		switch c.IncomingMessage.Command {
 		case "login":
 			c.Login()
