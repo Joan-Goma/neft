@@ -2,8 +2,9 @@ package main
 
 import (
 	"flag"
-	"neft.web/models"
 	"runtime"
+
+	"neft.web/models"
 
 	engine "github.com/JoanGTSQ/api"
 	"github.com/gin-gonic/gin"
@@ -17,7 +18,7 @@ var (
 	route   string
 )
 
-const version = "CERBERUS 2.2"
+const version = "CERBERUS 3.0.0"
 
 func init() {
 	flag.BoolVar(&debug, "debug", false, "Enable debug prints")
