@@ -72,10 +72,10 @@ func ControlWebsocket(context *gin.Context) {
 
 		switch c.IncomingMessage.Command {
 		case "login":
-			c.Login()
+			c.UserFuncs.Login(&c)
 			break
 		case "sign_up":
-			c.SignUp()
+			c.UserFuncs.SignUp(&c)
 			break
 		case "whoami":
 			if !reflect.DeepEqual(c.User, models.User{}) {
@@ -97,25 +97,25 @@ func ControlWebsocket(context *gin.Context) {
 		case "get_post_from_id":
 			c.ValidateAndExecute(c.GetPost)
 		case "update_user":
-			c.ValidateAndExecute(c.UpdateUser)
+			c.ValidateAndExecuteNew(c.UserFuncs.UpdateUser)
 			break
 		case "delete_user":
-			c.ValidateAndExecute(c.DeleteUser)
+			c.ValidateAndExecuteNew(c.UserFuncs.DeleteUser)
 			break
 		case "retrieve_user":
-			c.ValidateAndExecute(c.RetrieveUser)
+			c.ValidateAndExecuteNew(c.UserFuncs.RetrieveUser)
 			break
 		case "init_user_reset":
-			c.ValidateAndExecute(c.InitUserReset)
+			c.ValidateAndExecuteNew(c.UserFuncs.InitUserReset)
 			break
 		case "complete_user_reset":
-			c.ValidateAndExecute(c.CompleteReset)
+			c.ValidateAndExecuteNew(c.UserFuncs.CompleteReset)
 			break
 		case "follow_user":
-			c.ValidateAndExecute(c.FollowUser)
+			c.ValidateAndExecuteNew(c.UserFuncs.FollowUser)
 			break
 		case "unfollow_user":
-			c.ValidateAndExecute(c.UnfollowUser)
+			c.ValidateAndExecuteNew(c.UserFuncs.UnfollowUser)
 			break
 		case "quit":
 			delete(controller.Hub, c.UUID)
@@ -148,6 +148,7 @@ func GenerateClient(ws *websocket.Conn, addr string) (controller.Client, error) 
 	newClient := controller.Client{
 		UUID:            u,
 		Addr:            addr,
+		UserFuncs:       controller.UserFuncs{},
 		WS:              ws,
 		LastMessage:     message,
 		IncomingMessage: message,

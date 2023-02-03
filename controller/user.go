@@ -2,13 +2,17 @@ package controller
 
 import (
 	"fmt"
+
 	"neft.web/auth"
 
 	engine "github.com/JoanGTSQ/api"
 	"neft.web/models"
 )
 
-func (client *Client) Login() {
+type UserFuncs struct {
+}
+
+func (u UserFuncs) Login(client *Client) {
 
 	user, err := client.GetUserFromRequest()
 	if err != nil {
@@ -41,7 +45,7 @@ func (client *Client) Login() {
 }
 
 // UpdateUser Get the user from the json request, compare ID and update it
-func (client *Client) UpdateUser() {
+func (u UserFuncs) UpdateUser(client *Client) {
 
 	newUser, err := client.GetUserFromRequest()
 	if err != nil {
@@ -70,7 +74,7 @@ func (client *Client) UpdateUser() {
 }
 
 // DeleteUser Obtain user data, search by ID and delete it, return code http.StatusOK
-func (client *Client) DeleteUser() {
+func (u UserFuncs) DeleteUser(client *Client) {
 	var user models.User
 
 	user, err := client.GetUserFromRequest()
@@ -102,7 +106,7 @@ func (client *Client) DeleteUser() {
 }
 
 // RetrieveUser Obtain the user from the json request and search it by ID
-func (client *Client) RetrieveUser() {
+func (u UserFuncs) RetrieveUser(client *Client) {
 
 	user, err := client.GetUserFromRequest()
 	if err != nil {
@@ -125,7 +129,7 @@ func (client *Client) RetrieveUser() {
 }
 
 // SignUp Register a new user
-func (client *Client) SignUp() {
+func (u UserFuncs) SignUp(client *Client) {
 	user, err := client.GetUserFromRequest()
 	if err != nil {
 		engine.Warning.Println(err)
@@ -148,7 +152,7 @@ func (client *Client) SignUp() {
 }
 
 // InitUserReset Initiate the process of restore a password
-func (client *Client) InitUserReset() {
+func (u UserFuncs) InitUserReset(client *Client) {
 
 	user, err := client.GetUserFromRequest()
 	if err != nil {
@@ -178,7 +182,7 @@ type CompletePasswdReset struct {
 }
 
 // CompleteReset Use this controller to complete the password reset with token
-func (client *Client) CompleteReset() {
+func (u UserFuncs) CompleteReset(client *Client) {
 	user, err := client.GetUserFromRequest()
 	if err != nil {
 		engine.Warning.Println(err)
@@ -209,7 +213,7 @@ func (client *Client) CompleteReset() {
 }
 
 // FollowUser Use this controller to follow between users
-func (client *Client) FollowUser() {
+func (u UserFuncs) FollowUser(client *Client) {
 
 	userToFollow := &models.User{}
 
@@ -231,7 +235,7 @@ func (client *Client) FollowUser() {
 }
 
 // UnfollowUser Use this controller to unfollow between users
-func (client *Client) UnfollowUser() {
+func (u UserFuncs) UnfollowUser(client *Client) {
 
 	userToUnfollow := &models.User{}
 	err := client.GetInterfaceFromMap("user_to_follow", userToUnfollow)

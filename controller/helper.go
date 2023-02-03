@@ -25,6 +25,7 @@ type Client struct {
 	LastMessage     Message         `json:"-"`
 	IncomingMessage Message         `json:"-"`
 	Token           string          `json:"token,omitempty"`
+	UserFuncs       UserFuncs       `json:"-"`
 }
 
 type Message struct {
@@ -34,6 +35,8 @@ type Message struct {
 }
 
 type clientCommandExecution func()
+
+type newClientCommandExecution func(c *Client)
 
 func getFunctionName(i interface{}) string {
 	return runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
@@ -52,6 +55,11 @@ func (client *Client) ValidateAndExecute(functionToExecute clientCommandExecutio
 	}
 	engine.Debug.Println("new command executed:", getFunctionName(functionToExecute))
 	functionToExecute()
+}
+
+func (client *Client) ValidateAndExecuteNew(functionToExecute newClientCommandExecution) {
+
+	functionToExecute(client)
 }
 
 // RegisterToPool Add this client to the general pool
