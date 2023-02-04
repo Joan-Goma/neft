@@ -17,7 +17,12 @@ type Links struct {
 
 func (client *Client) GeneratePaginationFromRequest(count int) (models.Pagination, Links) {
 
-	var pagination models.Pagination
+	pagination := models.Pagination{
+		Limit: 2,
+		Page:  1,
+		Sort:  "created_at asc",
+	}
+
 	jsonStr, err := json.Marshal(client.IncomingMessage.Data["pagination"])
 	if err != nil {
 		engine.Debug.Println(err)
@@ -40,7 +45,7 @@ func (client *Client) GeneratePaginationFromRequest(count int) (models.Paginatio
 	}
 
 	if pagination.Page < 1 || pagination.Page > pageCount {
-		engine.Warning.Println("could not translate the pagination request")
+		engine.Warning.Println("could not translate the pagination request", pagination.Page, pageCount)
 		return models.Pagination{}, Links{}
 	}
 

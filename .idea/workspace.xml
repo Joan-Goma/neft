@@ -5,7 +5,23 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b55ab9d4-7f18-4127-beb2-0b8c27382938" name="Changes" comment="refactor delete trash and transfer all to websocket">
+      <change afterPath="$PROJECT_DIR$/controller/auth.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/controller/core.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/controller/spot.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/helper/helper.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/controller/helper.go" beforeDir="false" afterPath="$PROJECT_DIR$/controller/helper.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/controller/pagination.go" beforeDir="false" afterPath="$PROJECT_DIR$/controller/pagination.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/controller/post.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/controller/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/controller/user.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/helper/engine.go" beforeDir="false" afterPath="$PROJECT_DIR$/helper/engine.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/helper/motor.go" beforeDir="false" afterPath="$PROJECT_DIR$/helper/motor.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/posts.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/services.go" beforeDir="false" afterPath="$PROJECT_DIR$/models/services.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/spots.go" beforeDir="false" afterPath="$PROJECT_DIR$/models/spots.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/users.go" beforeDir="false" afterPath="$PROJECT_DIR$/models/users.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/validator.go" beforeDir="false" afterPath="$PROJECT_DIR$/models/validator.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -85,7 +101,7 @@
     <configuration name="go build neft.web" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
       <module name="api_server" />
       <working_directory value="$PROJECT_DIR$" />
-      <parameters value="-debug=true -route=log/log.txt -debugDB=false" />
+      <parameters value="-debug=true -route=log/log.txt -debugDB=true" />
       <kind value="PACKAGE" />
       <package value="neft.web" />
       <directory value="$PROJECT_DIR$" />

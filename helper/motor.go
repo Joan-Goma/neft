@@ -3,7 +3,6 @@ package helper
 import (
 	"encoding/json"
 	"net/http"
-	"reflect"
 	"sync"
 	"time"
 
@@ -57,8 +56,6 @@ func ControlWebsocket(context *gin.Context) {
 
 	for {
 
-		engine.Debug.Println("new message to proccess")
-
 		err = ReadMessage(ws, &c.IncomingMessage)
 
 		if err != nil {
@@ -70,71 +67,14 @@ func ControlWebsocket(context *gin.Context) {
 		}
 		c.LastMessage = c.IncomingMessage
 
-		switch c.IncomingMessage.Command {
-		case "login":
-			c.UserFuncs.Login(&c)
-			break
-		case "sign_up":
-			c.UserFuncs.SignUp(&c)
-			break
-		case "whoami":
-			if !reflect.DeepEqual(c.User, models.User{}) {
-				c.LastMessage.Data["user"] = &c.User
-			} else {
-				c.LastMessage.Data["error"] = "you are not logged"
-			}
-			c.SendMessage()
-			break
-		case "validate_token":
-			c.ValidateToken()
-			break
-		case "count_client":
-			c.LastMessage.Data["clients_in_pool"] = len(controller.Hub)
-			c.SendMessage()
-		case "message":
-			c.ValidateAndExecute(c.MessageController)
-			break
-		case "get_post_from_id":
-			c.ValidateAndExecuteNew(c.PostFuncs.GetPost)
-		case "update_user":
-			c.ValidateAndExecuteNew(c.UserFuncs.UpdateUser)
-			break
-		case "delete_user":
-			c.ValidateAndExecuteNew(c.UserFuncs.DeleteUser)
-			break
-		case "retrieve_user":
-			c.ValidateAndExecuteNew(c.UserFuncs.RetrieveUser)
-			break
-		case "init_user_reset":
-			c.ValidateAndExecuteNew(c.UserFuncs.InitUserReset)
-			break
-		case "complete_user_reset":
-			c.ValidateAndExecuteNew(c.UserFuncs.CompleteReset)
-			break
-		case "follow_user":
-			c.ValidateAndExecuteNew(c.UserFuncs.FollowUser)
-			break
-		case "unfollow_user":
-			c.ValidateAndExecuteNew(c.UserFuncs.UnfollowUser)
-			break
-		case "quit":
-			delete(controller.Hub, c.UUID)
-			err := ws.Close()
-			if err != nil {
-				engine.Debug.Println(err)
-				break
-			}
-			return
-		default:
-			c.LastMessage.Data["error"] = "command invalid, please try again"
-			c.SendMessage()
-		}
-		//c.IncomingMessage = controller.Message{}
+		c.ExecuteCommand(c.IncomingMessage.Command)
+
 		data := make(map[string]interface{})
 		cM := controller.Message{
 			Data: data,
 		}
 		c.IncomingMessage = cM
+		engine.Debug.Println("command processed")
 	}
 }
 
@@ -148,8 +88,6 @@ func GenerateClient(ws *websocket.Conn, addr string) (controller.Client, error) 
 	newClient := controller.Client{
 		UUID:            u,
 		Addr:            addr,
-		PostFuncs:       controller.PostFuncs{},
-		UserFuncs:       controller.UserFuncs{},
 		WS:              ws,
 		LastMessage:     message,
 		IncomingMessage: message,
@@ -163,7 +101,7 @@ func GenerateClient(ws *websocket.Conn, addr string) (controller.Client, error) 
 }
 
 func ReadMessage(ws *websocket.Conn, dest interface{}) error {
-	engine.Debug.Println("New Incoming message")
+	//	engine.Debug.Println("New Incoming message")
 	//engine.Debug.Printf("Client, %d sent another request %d", message.RequestID, message.RequestID)
 	//Read Message from client
 	_, m, err := ws.ReadMessage()

@@ -284,22 +284,22 @@ type MultipleUsers struct {
 }
 
 type User struct {
-	ID           uint       `gorm:"primary_key" json:"id"`
+	ID           uint       `gorm:"primary_key" json:"id,omitempty"`
 	CreatedAt    time.Time  `json:"-"`
 	UpdatedAt    time.Time  `json:"-"`
 	DeletedAt    *time.Time `json:"-" sql:"index"`
-	UserName     string     `gorm:"not null" json:"username"`
-	FullName     string     `gorm:"not null" json:"full_name"`
-	Email        string     `gorm:"not null;unique_index" json:"email"`
-	Password     string     `gorm:"-" json:"password"`
-	Photo        string     `json:"photo"`
+	UserName     string     `gorm:"not null" json:"username,omitempty"`
+	FullName     string     `gorm:"not null" json:"full_name,omitempty"`
+	Email        string     `gorm:"not null;unique_index" json:"email,omitempty"`
+	Password     string     `gorm:"-" json:"password,omitempty"`
+	Photo        string     `json:"photo,omitempty"`
 	PasswordHash string     `gorm:"not null" json:"-"`
 	Remember     string     `gorm:"-" json:"-"`
-	Followers    int        `gorm:"-" json:"followers"`
-	Following    int        `gorm:"-" json:"following"`
+	Followers    int        `gorm:"-" json:"followers,omitempty"`
+	Following    int        `gorm:"-" json:"following,omitempty"`
 	Friends      []User     `gorm:"many2many:friendships;association_jointable_foreignkey:friend_id" json:"-"`
 	RememberHash string     `gorm:"not null;unique_index" json:"-"`
-	RoleID       uint       `gorm:"not null;default: 1" json:"role_id"`
-	Role         Role       `gorm:"foreignkey:RoleID" json:"role"`
-	Banned       bool       `gorm:"not null; default: false" json:"banned"`
+	RoleID       uint       `gorm:"not null;default: 1" json:"role_id,omitempty"`
+	Role         Role       `gorm:"foreignkey:RoleID" json:"role,omitempty"`
+	Banned       bool       `gorm:"not null; default: false" json:"banned,omitempty"`
 }

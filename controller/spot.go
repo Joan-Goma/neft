@@ -5,12 +5,12 @@ import (
 	"neft.web/models"
 )
 
-type PostFuncs struct{}
+type SpotFuncs struct{}
 
-// GetPost Obtain the post id compare to the user, and return it
-func (p PostFuncs) GetPost(client *Client) {
-
-	post, err := client.GetPostFromRequest()
+// GetSpot Obtain the spot id compare to the user, and return it
+func (p SpotFuncs) GetSpot(client *Client) {
+	var spot models.Spot
+	err := client.GetInterfaceFromMap("spot", &spot)
 	if err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err.Error()
@@ -18,7 +18,7 @@ func (p PostFuncs) GetPost(client *Client) {
 		return
 	}
 
-	err = post.ByID()
+	err = spot.ByID()
 	if err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err.Error()
@@ -26,39 +26,40 @@ func (p PostFuncs) GetPost(client *Client) {
 		return
 	}
 
-	client.LastMessage.Data["post"] = post
+	client.LastMessage.Data["spot"] = spot
 	client.SendMessage()
 }
 
-// CreatePost Receive a JSON with a valid post and create it
-func (p PostFuncs) CreatePost(client *Client) {
+// CreateSpot Receive a JSON with a valid spot and create it
+func (p SpotFuncs) CreateSpot(client *Client) {
 
-	post, err := client.GetPostFromRequest()
-
+	var spot models.Spot
+	err := client.GetInterfaceFromMap("spot", &spot)
 	if err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
-	// Create post
-	post.UserID = client.User.ID
+	// Create spot
+	spot.UserID = client.User.ID
 
-	if err := post.Create(); err != nil {
+	if err := spot.Create(); err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
-	engine.Debug.Println("New post created")
+	engine.Debug.Println("New spot created")
 
-	client.LastMessage.Data["post"] = post
+	client.LastMessage.Data["spot"] = spot
+	client.LastMessage.Data["message"] = "New spot created!"
 	client.SendMessage()
 }
 
-// RetrieveAllPost Return all posts
-func (p PostFuncs) RetrieveAllPost(client *Client) {
-	var mp *models.MultiplePost
+// RetrieveAllSpot Return all spots
+func (p SpotFuncs) RetrieveAllSpot(client *Client) {
+	mp := &models.MultipleSpots{}
 	// Create pagination
 	err := mp.Count()
 	if err != nil {
@@ -70,8 +71,8 @@ func (p PostFuncs) RetrieveAllPost(client *Client) {
 	var links Links
 	mp.Pagination, links = client.GeneratePaginationFromRequest(int(mp.Quantity))
 
-	// Retrieve all posts data
-	err = mp.AllPosts(client.User.ID)
+	// Retrieve all spots data
+	err = mp.AllSpots()
 	if err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err.Error()
@@ -79,24 +80,24 @@ func (p PostFuncs) RetrieveAllPost(client *Client) {
 		return
 	}
 
-	client.LastMessage.Data["data"] = mp.Posts
+	client.LastMessage.Data["data"] = mp.Spots
 	client.LastMessage.Data["links"] = links
 	client.SendMessage()
 	return
 }
 
-// DeletePost Receive a valida post and delete it
-func (p PostFuncs) DeletePost(client *Client) {
-	post := &models.Post{}
+// DeleteSpot Receive a valida spot and delete it
+func (p SpotFuncs) DeleteSpot(client *Client) {
+	spot := &models.Spot{}
 
 	// Obtain the body in the request and parse to the user
-	if err := client.GetInterfaceFromMap("post", post); err != nil {
+	if err := client.GetInterfaceFromMap("spot", spot); err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
-	err := post.ByID()
+	err := spot.ByID()
 	if err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err.Error()
@@ -104,58 +105,58 @@ func (p PostFuncs) DeletePost(client *Client) {
 		return
 	}
 
-	if err := post.Delete(); err != nil {
+	if err := spot.Delete(); err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
 
-	client.LastMessage.Data["message"] = "Post deleted!"
+	client.LastMessage.Data["message"] = "Spot deleted!"
 	client.SendMessage()
 }
 
-// UpdatePost Receive a valid post and update it
-func (p PostFuncs) UpdatePost(client *Client) {
-	post := &models.Post{}
+// UpdateSpot Receive a valid spot and update it
+func (p SpotFuncs) UpdateSpot(client *Client) {
+	spot := &models.Spot{}
 
 	// Obtain the body in the request and parse to the user
-	if err := client.GetInterfaceFromMap("post", post); err != nil {
+	if err := client.GetInterfaceFromMap("spot", spot); err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
 
-	if err := post.Update(); err != nil {
+	if err := spot.Update(); err != nil {
 		engine.Warning.Println(engine.ERR_NOT_SAME_USER)
 		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
 
-	if err := post.ByID(); err != nil {
+	if err := spot.ByID(); err != nil {
 		engine.Warning.Println(engine.ERR_NOT_SAME_USER)
 		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
 
-	client.LastMessage.Data["error"] = post
+	client.LastMessage.Data["error"] = spot
 	client.SendMessage()
 }
 
-// CommentPost  Obtain the remember_hash from the JWT token and return it in JSON
-func (p PostFuncs) CommentPost(client *Client) {
-	post := &models.Post{}
-	err := client.GetInterfaceFromMap("post", post)
+// CommentSpot  Obtain the remember_hash from the JWT token and return it in JSON
+func (p SpotFuncs) CommentSpot(client *Client) {
+	spot := &models.Spot{}
+	err := client.GetInterfaceFromMap("spot", spot)
 	if err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
-	if err := post.ByID(); err != nil {
+	if err := spot.ByID(); err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
@@ -171,7 +172,7 @@ func (p PostFuncs) CommentPost(client *Client) {
 		return
 	}
 	comment.CommentatorID = client.User.ID
-	if err = post.Comment(comment); err != nil {
+	if err = spot.Comment(comment); err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
@@ -182,11 +183,11 @@ func (p PostFuncs) CommentPost(client *Client) {
 	client.SendMessage()
 }
 
-// UncommentPost Obtain the remember_hash from the JWT token and return it in JSON
-func (p PostFuncs) UncommentPost(client *Client) {
-	post := &models.Post{}
+// UncommentSpot Obtain the remember_hash from the JWT token and return it in JSON
+func (p SpotFuncs) UncommentSpot(client *Client) {
+	spot := &models.Spot{}
 
-	if err := client.GetInterfaceFromMap("post", post); err != nil {
+	if err := client.GetInterfaceFromMap("spot", spot); err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
@@ -202,7 +203,7 @@ func (p PostFuncs) UncommentPost(client *Client) {
 		client.SendMessage()
 		return
 	}
-	if err := post.Uncomment(comment); err != nil {
+	if err := spot.Uncomment(comment); err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
@@ -213,50 +214,73 @@ func (p PostFuncs) UncommentPost(client *Client) {
 	client.SendMessage()
 }
 
-// LikePost Obtain the remember_hash from the JWT token and return it in JSON
-func (p PostFuncs) LikePost(client *Client) {
+// LikeSpot Obtain the remember_hash from the JWT token and return it in JSON
+func (p SpotFuncs) LikeSpot(client *Client) {
 
 	// Search the user from the claims by remember hash
 
-	post := &models.Post{}
+	spot := &models.Spot{}
 
-	if err := client.GetInterfaceFromMap("post", post); err != nil {
+	if err := client.GetInterfaceFromMap("spot", spot); err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
 
-	if err := post.Like(client.User.ID); err != nil {
+	if err := spot.Like(client.User.ID); err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
 
+	client.LastMessage.Data["spot"] = spot
 	client.LastMessage.Data["message"] = "Like successfully"
 	client.SendMessage()
 }
 
-// UnlikePost Obtain the remember_hash from the JWT token and return it in JSON
-func (p PostFuncs) UnlikePost(client *Client) {
+func (p SpotFuncs) RetrieveSingle(client *Client) {
+	// Search the user from the claims by remember hash
 
-	post := &models.Post{}
+	spot := &models.Spot{}
 
-	if err := client.GetInterfaceFromMap("post", post); err != nil {
+	if err := client.GetInterfaceFromMap("spot", spot); err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
 
-	if err := post.Unlike(client.User.ID); err != nil {
+	if err := spot.ByID(); err != nil {
+		engine.Warning.Println(err)
+		client.LastMessage.Data["error"] = err.Error()
+		client.SendMessage()
+		return
+	}
+	client.LastMessage.Data["spot"] = spot
+	client.SendMessage()
+}
+
+// UnlikeSpot Obtain the remember_hash from the JWT token and return it in JSON
+func (p SpotFuncs) UnlikeSpot(client *Client) {
+
+	spot := &models.Spot{}
+
+	if err := client.GetInterfaceFromMap("spot", spot); err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err.Error()
 		client.SendMessage()
 		return
 	}
 
-	client.LastMessage.Data["message"] = "Post unliked successfully"
+	if err := spot.Unlike(client.User.ID); err != nil {
+		engine.Warning.Println(err)
+		client.LastMessage.Data["error"] = err.Error()
+		client.SendMessage()
+		return
+	}
+
+	client.LastMessage.Data["message"] = "Spot unliked successfully"
 	client.SendMessage()
 }

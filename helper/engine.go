@@ -3,6 +3,7 @@ package helper
 import (
 	"bufio"
 	"fmt"
+	"neft.web/controller"
 	"os"
 
 	engine "github.com/JoanGTSQ/api"
@@ -63,10 +64,37 @@ func InitRouter() *gin.Engine {
 		}
 	}
 	*/
+
 	beta := router.Group("/beta")
 	{
 		beta.GET("/websocket", ControlWebsocket)
 	}
+
+	GenerateController("core.whoami", controller.CoreFuncs{}.WhoAmI)
+	GenerateController("core.quit", controller.CoreFuncs{}.Quit)
+
+	GenerateController("auth.login", controller.AuthFuncs{}.Login)
+	GenerateController("auth.signup", controller.AuthFuncs{}.SignUp)
+
+	GenerateController("user.retrieve.single", controller.UserFuncs{}.RetrieveUser)
+	GenerateController("user.retrieve.all", controller.UserFuncs{}.RetrieveUser)
+	GenerateController("user.update", controller.UserFuncs{}.UpdateUser)
+	GenerateController("user.password.init_reset", controller.UserFuncs{}.InitUserReset)
+	GenerateController("user.password.complete_reset", controller.UserFuncs{}.CompleteReset)
+	GenerateController("user.delete", controller.UserFuncs{}.DeleteUser)
+	GenerateController("user.interaction.follow", controller.UserFuncs{}.FollowUser)
+	GenerateController("user.interaction.unfollow", controller.UserFuncs{}.UnfollowUser)
+
+	GenerateController("spot.create", controller.SpotFuncs{}.CreateSpot)
+	GenerateController("spot.delete", controller.SpotFuncs{}.DeleteSpot)
+	GenerateController("spot.update", controller.SpotFuncs{}.UpdateSpot)
+	GenerateController("spot.retrieve.single", controller.SpotFuncs{}.RetrieveSingle)
+	GenerateController("spot.retrieve.all", controller.SpotFuncs{}.RetrieveAllSpot)
+	GenerateController("spot.interaction.like", controller.SpotFuncs{}.LikeSpot)
+	GenerateController("spot.interaction.unlike", controller.SpotFuncs{}.UnlikeSpot)
+	GenerateController("spot.interaction.comment", controller.SpotFuncs{}.CommentSpot)
+	GenerateController("spot.interaction.uncomment", controller.SpotFuncs{}.UncommentSpot)
+
 	return router
 }
 

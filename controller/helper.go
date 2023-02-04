@@ -3,9 +3,10 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
-	"runtime"
+	"strings"
 	"sync"
 	"time"
 
@@ -25,8 +26,6 @@ type Client struct {
 	LastMessage     Message         `json:"-"`
 	IncomingMessage Message         `json:"-"`
 	Token           string          `json:"token,omitempty"`
-	UserFuncs       UserFuncs       `json:"-"`
-	PostFuncs       PostFuncs       `json:"-"`
 }
 
 type Message struct {
@@ -35,30 +34,37 @@ type Message struct {
 	Data      map[string]interface{} `json:"data,omitempty"`
 }
 
-type clientCommandExecution func()
+var (
+	MapFuncs = make(map[string]ClientCommandExecution)
+)
 
-type newClientCommandExecution func(c *Client)
+func (client *Client) ExecuteCommand(commandName string) {
 
-func getFunctionName(i interface{}) string {
-	return runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
+	if MapFuncs[commandName] == nil {
+		client.LastMessage.Data["error"] = "command invalid, please try again"
+		client.SendMessage()
+		return
+	}
+	if !strings.Contains(commandName, "auth") && !strings.Contains(commandName, "core") {
+		validateAndExecute(MapFuncs[commandName], client)
+		return
+	}
+	MapFuncs[commandName](client)
 }
 
-func (client *Client) ValidateAndExecute(functionToExecute clientCommandExecution) {
+type ClientCommandExecution func(c *Client)
+
+func validateAndExecute(functionToExecute ClientCommandExecution, client *Client) {
 
 	if client.User.Banned {
 		client.LastMessage.Data["error"] = "You are banned"
 		client.SendMessage()
 		return
-	} else if client.Token == "" {
+	} else if reflect.DeepEqual(client.User, models.User{}) {
 		client.LastMessage.Data["error"] = "please log in first"
 		client.SendMessage()
 		return
 	}
-	engine.Debug.Println("new command executed:", getFunctionName(functionToExecute))
-	functionToExecute()
-}
-
-func (client *Client) ValidateAndExecuteNew(functionToExecute newClientCommandExecution) {
 
 	functionToExecute(client)
 }
@@ -186,30 +192,12 @@ func (client *Client) GetUserFromRequest() (models.User, error) {
 	return user, nil
 }
 
-// GetPostFromRequest Return a post and error from the message request
-func (client *Client) GetPostFromRequest() (models.Post, error) {
-	var post models.Post
-	// Convert map to json string
-	jsonStr, err := json.Marshal(client.IncomingMessage.Data["post"])
-	if err != nil {
-		engine.Debug.Println(err)
-		client.LastMessage.Data["error"] = err.Error()
-		client.SendMessage()
-		return models.Post{}, err
-	}
-
-	// Obtain the body in the request and parse to the user
-	if err := json.Unmarshal(jsonStr, &post); err != nil {
-		engine.Warning.Println(err)
-		client.LastMessage.Data["error"] = engine.ERR_INVALID_JSON
-		client.SendMessage()
-		return models.Post{}, err
-	}
-	return post, nil
-}
-
 // GetInterfaceFromMap Search from the message request and save it into dest
 func (client *Client) GetInterfaceFromMap(position string, dest interface{}) error {
+
+	if client.IncomingMessage.Data[position] == nil {
+		return errors.New("could not find the object please try again")
+	}
 	// Convert map to json string
 	jsonStr, err := json.Marshal(client.IncomingMessage.Data[position])
 	if err != nil {

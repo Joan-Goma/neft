@@ -102,10 +102,10 @@ func defaultify(user *User) error {
 	return nil
 }
 
-func defaultifyCreation(user *User) error{
+func defaultifyCreation(user *User) error {
 	user.RoleID = engine.ROLE_USER
 	user.Banned = false
-  return nil
+	return nil
 }
 
 func rememberMinBytes(user *User) error {
@@ -173,7 +173,7 @@ func (user *User) NewUserValidation() error {
 		bcryptPassword,
 		passwordHashRequired,
 		defaultify,
-    defaultifyCreation,
+		defaultifyCreation,
 		hmacRemember,
 		rememberHashRequired,
 		normalizeEmail,
@@ -203,18 +203,39 @@ func (user *User) ExistentUserValidation() error {
 
 	return nil
 }
-func Delete(user *User) error {
-	return user.Delete()
+
+type spotValFunc func(*Spot) error
+
+func runSpotValFuncs(spot *Spot, fns ...spotValFunc) error {
+	for _, fn := range fns {
+		if err := fn(spot); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func (spot *Spot) ValidateNewSpot() error {
+	if err := runSpotValFuncs(spot,
+		validateDescription,
+		validateCoordinates,
+	); err != nil {
+		return err
+	}
+	return nil
 }
 
-func ByRemember(token string) (*User, error) {
-
-	if token == "" {
-		return nil, engine.ERR_REMMEMBER_REQUIRED
+func validateDescription(spot *Spot) error {
+	if spot.Description == "" || len(spot.Description) < 8 {
+		//TODO generate errors in external library
+		engine.Debug.Println(spot.Description)
+		return errors.New("description not valid please try again")
 	}
-	user := &User{
-		RememberHash: token,
+	return nil
+}
+func validateCoordinates(spot *Spot) error {
+	regex := regexp.MustCompile(`^-?(90|[0-8]?\d(\.\d+)?), -?(180|[01]?[0-7]?\d(\.\d+)?)$`)
+	if !regex.Match([]byte(spot.Coordinates)) {
+		return errors.New("coordinates not valid")
 	}
-
-	return user.ByRemember()
+	return nil
 }

@@ -40,7 +40,7 @@ func (s *Services) Close() error {
 }
 
 func DestructiveReset() error {
-	if err := DBCONNECTION.DropTableIfExists(&UserMessage{}, &Category{}, &pwReset{}, &Role{}, &User{}, &Spot{}, &Comment{}, &Post{},
+	if err := DBCONNECTION.DropTableIfExists(&UserMessage{}, &Category{}, &pwReset{}, &Role{}, &User{}, &Spot{}, &Comment{},
 		&Device{}).Error; err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func DestructiveReset() error {
 
 func AutoMigrate() error {
 
-	if err := DBCONNECTION.AutoMigrate(&User{}, &UserMessage{}, &Role{}, &pwReset{}, &Category{}, &Spot{}, &Comment{}, &Post{},
+	if err := DBCONNECTION.AutoMigrate(&User{}, &UserMessage{}, &Role{}, &pwReset{}, &Category{}, &Comment{}, &Spot{},
 		&Device{}).Error; err != nil {
 		return err
 	}

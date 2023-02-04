@@ -3,45 +3,11 @@ package controller
 import (
 	"fmt"
 
-	"neft.web/auth"
-
 	engine "github.com/JoanGTSQ/api"
 	"neft.web/models"
 )
 
 type UserFuncs struct {
-}
-
-func (u UserFuncs) Login(client *Client) {
-
-	user, err := client.GetUserFromRequest()
-	if err != nil {
-		engine.Warning.Println(err)
-		client.LastMessage.Data["error"] = err.Error()
-		client.SendMessage()
-		return
-	}
-	err = user.Authenticate()
-	if err != nil {
-		engine.Warning.Println(err)
-		client.LastMessage.Data["error"] = err.Error()
-		client.SendMessage()
-		return
-	}
-
-	// Generate  JWT Token
-	tokenString, err := auth.GenerateJWT(user)
-	if err != nil {
-		engine.Warning.Println(err)
-		client.LastMessage.Data["error"] = err.Error()
-		client.SendMessage()
-		return
-	}
-
-	client.User = user
-	client.LastMessage.Data["message"] = "login succesful"
-	client.LastMessage.Data["token"] = tokenString
-	client.SendMessage()
 }
 
 // UpdateUser Get the user from the json request, compare ID and update it
@@ -125,29 +91,6 @@ func (u UserFuncs) RetrieveUser(client *Client) {
 	}
 
 	client.LastMessage.Data["user"] = user
-	client.SendMessage()
-}
-
-// SignUp Register a new user
-func (u UserFuncs) SignUp(client *Client) {
-	user, err := client.GetUserFromRequest()
-	if err != nil {
-		engine.Warning.Println(err)
-		client.LastMessage.Data["error"] = err.Error()
-		client.SendMessage()
-		return
-	}
-	// Create user with the data received
-	if err := user.Create(); err != nil {
-		engine.Warning.Println(err)
-		client.LastMessage.Data["error"] = err.Error()
-		client.SendMessage()
-		return
-	}
-
-	client.User = user
-
-	client.LastMessage.Data["message"] = "User created successfully"
 	client.SendMessage()
 }
 
