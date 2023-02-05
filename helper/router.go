@@ -77,7 +77,7 @@ func InitRouter() *gin.Engine {
 	GenerateController("auth.signup", controller.AuthFuncs{}.SignUp)
 
 	GenerateController("user.retrieve.single", controller.UserFuncs{}.RetrieveUser)
-	GenerateController("user.retrieve.all", controller.UserFuncs{}.RetrieveUser)
+	GenerateController("user.retrieve.all", controller.UserFuncs{}.RetrieveAllUser)
 	GenerateController("user.update", controller.UserFuncs{}.UpdateUser)
 	GenerateController("user.password.init_reset", controller.UserFuncs{}.InitUserReset)
 	GenerateController("user.password.complete_reset", controller.UserFuncs{}.CompleteReset)

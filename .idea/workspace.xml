@@ -4,24 +4,13 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b55ab9d4-7f18-4127-beb2-0b8c27382938" name="Changes" comment="refactor delete trash and transfer all to websocket">
-      <change afterPath="$PROJECT_DIR$/controller/auth.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/controller/core.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/controller/spot.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/helper/helper.go" afterDir="false" />
+    <list default="true" id="b55ab9d4-7f18-4127-beb2-0b8c27382938" name="Changes" comment="refactor of controller, make sure spots works and user and auth refactor">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/controller/helper.go" beforeDir="false" afterPath="$PROJECT_DIR$/controller/helper.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/controller/pagination.go" beforeDir="false" afterPath="$PROJECT_DIR$/controller/pagination.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/controller/post.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/controller/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/controller/user.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helper/engine.go" beforeDir="false" afterPath="$PROJECT_DIR$/helper/engine.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helper/motor.go" beforeDir="false" afterPath="$PROJECT_DIR$/helper/motor.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/posts.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/services.go" beforeDir="false" afterPath="$PROJECT_DIR$/models/services.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/spots.go" beforeDir="false" afterPath="$PROJECT_DIR$/models/spots.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/users.go" beforeDir="false" afterPath="$PROJECT_DIR$/models/users.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/validator.go" beforeDir="false" afterPath="$PROJECT_DIR$/models/validator.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/helper.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/pagination.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/helper/engine.go" beforeDir="false" afterPath="$PROJECT_DIR$/helper/router.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/helper/motor.go" beforeDir="false" afterPath="$PROJECT_DIR$/helper/websocket.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/middlewares/middleware.go" beforeDir="false" afterPath="$PROJECT_DIR$/middlewares/middleware.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -177,7 +166,8 @@
     <MESSAGE value="replace err to err.Error() to avoid nil messages" />
     <MESSAGE value="add fix for receiving commands and refactor" />
     <MESSAGE value="refactor delete trash and transfer all to websocket" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactor delete trash and transfer all to websocket" />
+    <MESSAGE value="refactor of controller, make sure spots works and user and auth refactor" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactor of controller, make sure spots works and user and auth refactor" />
   </component>
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>

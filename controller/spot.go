@@ -7,29 +7,6 @@ import (
 
 type SpotFuncs struct{}
 
-// GetSpot Obtain the spot id compare to the user, and return it
-func (p SpotFuncs) GetSpot(client *Client) {
-	var spot models.Spot
-	err := client.GetInterfaceFromMap("spot", &spot)
-	if err != nil {
-		engine.Warning.Println(err)
-		client.LastMessage.Data["error"] = err.Error()
-		client.SendMessage()
-		return
-	}
-
-	err = spot.ByID()
-	if err != nil {
-		engine.Warning.Println(err)
-		client.LastMessage.Data["error"] = err.Error()
-		client.SendMessage()
-		return
-	}
-
-	client.LastMessage.Data["spot"] = spot
-	client.SendMessage()
-}
-
 // CreateSpot Receive a JSON with a valid spot and create it
 func (p SpotFuncs) CreateSpot(client *Client) {
 

@@ -197,3 +197,32 @@ func (u UserFuncs) UnfollowUser(client *Client) {
 	client.LastMessage.Data["message"] = fmt.Sprintf("User ID %d unfollowed successfully", userToUnfollow.ID)
 	client.SendMessage()
 }
+
+// RetrieveAllUser Return all users
+func (u UserFuncs) RetrieveAllUser(client *Client) {
+	mp := &models.MultipleUsers{}
+	// Create pagination
+	err := mp.Count()
+	if err != nil {
+		engine.Warning.Println(err)
+		client.LastMessage.Data["error"] = err.Error()
+		client.SendMessage()
+		return
+	}
+	var links Links
+	mp.Pagination, links = client.GeneratePaginationFromRequest(int(mp.Quantity))
+
+	// Retrieve all spots data
+	err = mp.GetAllUsers()
+	if err != nil {
+		engine.Warning.Println(err)
+		client.LastMessage.Data["error"] = err.Error()
+		client.SendMessage()
+		return
+	}
+
+	client.LastMessage.Data["data"] = mp.Users
+	client.LastMessage.Data["links"] = links
+	client.SendMessage()
+	return
+}
