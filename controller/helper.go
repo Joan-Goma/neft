@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/rand"
 	"reflect"
 	"strings"
 	"sync"
@@ -25,6 +26,7 @@ type Client struct {
 	WS              *websocket.Conn `json:"-"`
 	LastMessage     Message         `json:"-"`
 	IncomingMessage Message         `json:"-"`
+	MessageReader   chan Message    `json:"-"`
 	Token           string          `json:"token,omitempty"`
 }
 
@@ -100,8 +102,9 @@ func (client *Client) SendMessage() {
 }
 
 var (
-	Hub   = make(map[uuid.UUID]*Client)
-	Lobby = make(chan models.UserMessage)
+	Hub             = make(map[uuid.UUID]*Client)
+	Lobby           = make(chan models.UserMessage)
+	IncomingMessage chan Message
 )
 
 // StartMessageServer This loop will update the client messages every time someone sends
@@ -220,26 +223,21 @@ func (client *Client) ApplyTemporalBan() {
 	client.User.Banned = true
 }
 
-func (client *Client) ValidateToken() {
+func (client *Client) ValidateToken() error {
 	var token string
 
 	if err := client.GetInterfaceFromMap("token", &token); err != nil {
-		client.LastMessage.Command = "invalid_token"
-		client.LastMessage.Data["error"] = "please try again"
-		return
+		err = errors.New("could not load the token, please try again")
+		return err
 	}
 
 	if err := auth.ValidateToken(token); err != nil {
-		client.Sync.Lock()
-		client.LastMessage.Command = "invalid_token"
-		client.LastMessage.Data["error"] = "the token was invalid, please verify and connect again"
-		client.SendMessage()
-		client.ApplyTemporalBan()
-		client.Sync.Unlock()
-		return
+		err = errors.New("token not valid, please try again")
+		return err
 	}
 	client.Token = token
 	client.TokenToUser()
+	return nil
 }
 func (client *Client) TokenToUser() {
 	claims, err := auth.ReturnClaims(client.Token)
@@ -251,8 +249,15 @@ func (client *Client) TokenToUser() {
 	engine.Debug.Println(claims.Context.User)
 	client.User = claims.Context.User
 }
-func (client *Client) CheckToken() {
-	////m := rand.Intn(20)
+
+func (client *Client) StartValidator() {
+	m := rand.Intn(20)
+	request := 01000 + m
+	mssg := Message{
+		RequestID: int64(request),
+		Command:   "temporal_validator",
+	}
+
 	ticker := time.NewTicker(1 * time.Minute)
 	done := make(chan bool)
 
@@ -261,8 +266,47 @@ func (client *Client) CheckToken() {
 		case <-done:
 			return
 		case <-ticker.C:
-			//client.LastMessage.Command = "temporal_login"
-			//client.SendMessage()
+			engine.Debug.Println("starting to ban")
+			client.LastMessage = mssg
+			client.SendMessage()
+			client.CompleteValidator(mssg.RequestID)
+
+		}
+	}
+}
+
+func (client *Client) CompleteValidator(requestID int64) {
+	engine.Debug.Println("Starting validation....")
+	tries := 0
+	ticker := time.NewTicker(5 * time.Minute)
+	for {
+		select {
+		case message := <-client.MessageReader:
+			if message.RequestID == requestID {
+				err := client.ValidateToken()
+				if err != nil {
+					tries++
+					if tries >= 3 {
+						//client.ApplyTemporalBan()
+						client.LastMessage.Data["error"] = "you will be banned"
+						client.SendMessage()
+
+					}
+				}
+				tries = 0
+				return
+			}
+		case <-ticker.C:
+			tries++
+			if tries >= 3 {
+				//client.Sync.Lock()
+				//client.ApplyTemporalBan()
+				client.LastMessage.Data["error"] = "banned"
+				client.SendMessage()
+				//client.Sync.Unlock()
+				//client.WS.Close()
+			}
+
 		}
 	}
 }

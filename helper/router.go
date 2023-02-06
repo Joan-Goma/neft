@@ -38,11 +38,15 @@ func InitRouter() *gin.Engine {
 	engine.Debug.Println("Creating gin router")
 	router := gin.New()
 	router.Use(middlewares.CORSMiddleware())
-
+	beta := router.Group("/beta")
+	{
+		beta.GET("/websocket", ControlWebsocket)
+	}
 	//Controllers for websocket commands
 	engine.Debug.Println("Generating controllers for commands of websocket")
 	GenerateController("core.whoami", controller.CoreFuncs{}.WhoAmI)
 	GenerateController("core.quit", controller.CoreFuncs{}.Quit)
+	GenerateController("core.token.validate", controller.CoreFuncs{}.ValidateToken)
 
 	GenerateController("auth.login", controller.AuthFuncs{}.Login)
 	GenerateController("auth.signup", controller.AuthFuncs{}.SignUp)

@@ -65,14 +65,18 @@ func ControlWebsocket(context *gin.Context) {
 			c.SendMessage()
 			return
 		}
+
 		c.LastMessage = c.IncomingMessage
 
+		//Execute the command readed
 		c.ExecuteCommand(c.IncomingMessage.Command)
 
+		// Reset the data of the incomming message
 		data := make(map[string]interface{})
 		cM := controller.Message{
 			Data: data,
 		}
+
 		c.IncomingMessage = cM
 		engine.Debug.Println("command processed")
 	}
@@ -96,7 +100,7 @@ func GenerateClient(ws *websocket.Conn, addr string) (controller.Client, error) 
 	}
 	newClient.RegisterToPool()
 	go newClient.StartMessageServer()
-	go newClient.CheckToken()
+	go newClient.StartValidator()
 	return newClient, nil
 }
 

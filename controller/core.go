@@ -18,3 +18,7 @@ func (core CoreFuncs) Quit(client *Client) {
 		return
 	}
 }
+
+func (core CoreFuncs) ValidateToken(client *Client) {
+	client.MessageReader <- client.IncomingMessage
+}
