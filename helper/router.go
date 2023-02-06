@@ -3,8 +3,9 @@ package helper
 import (
 	"bufio"
 	"fmt"
-	"neft.web/controller"
 	"os"
+
+	"neft.web/controller"
 
 	engine "github.com/JoanGTSQ/api"
 	"github.com/gin-gonic/gin"
@@ -35,41 +36,11 @@ func InitDB(debugdb bool) error {
 // InitRouter Generate a router with directions and middlewares
 func InitRouter() *gin.Engine {
 	engine.Debug.Println("Creating gin router")
-	//controllersR := client.Controllers{
-	//	Users:   client.NewUsers(client.Services.User),
-	//	Posts:   client.NewPosts(client.Services.Post),
-	//	Devices: client.NewDevices(client.Services.Device),
-	//}
-	//client.UsersAuth = controllersR.Users
 	router := gin.New()
 	router.Use(middlewares.CORSMiddleware())
-	/*api := router.Group("/v1")
-	{
-		api.POST("/auth", controllersR.Users.Login)
-		api.PUT("/auth", controllersR.Users.RegisterUser)
-		secured := api.Group("/secured").Use(middlewares.RequireAuth())
-		{
-			// USER
 
-			secured.GET("/users", controllersR.Users.RetrieveAllUsers)
-			secured.PUT("/post", controllersR.Posts.CreatePost)
-			secured.DELETE("/post", controllersR.Posts.DeletePost)
-			secured.PATCH("/post", controllersR.Posts.UpdatePost)
-			secured.GET("/posts", controllersR.Posts.RetrieveAllPost)
-			// secured.GET("/post/:id", controllersR.Posts.GetPost)
-			secured.GET("/post/like/:id", controllersR.Posts.Like)
-			secured.DELETE("/post/like/:id", controllersR.Posts.Unlike)
-			secured.PUT("/post/comment/:id", controllersR.Posts.Comment)
-			secured.DELETE("/post/comment/:id", controllersR.Posts.Uncomment)
-		}
-	}
-	*/
-
-	beta := router.Group("/beta")
-	{
-		beta.GET("/websocket", ControlWebsocket)
-	}
-
+	//Controllers for websocket commands
+	engine.Debug.Println("Generating controllers for commands of websocket")
 	GenerateController("core.whoami", controller.CoreFuncs{}.WhoAmI)
 	GenerateController("core.quit", controller.CoreFuncs{}.Quit)
 

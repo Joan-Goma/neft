@@ -43,11 +43,6 @@ func (spot *Spot) ByID() error {
 	return nil
 }
 
-func (spot *Spot) SearchNear() error {
-	//TODO make search spots near a location
-	return nil
-}
-
 func (ms *MultipleSpots) AllSpots() error {
 	offset := (ms.Pagination.Page - 1) * ms.Pagination.Limit
 	err := DBCONNECTION.
