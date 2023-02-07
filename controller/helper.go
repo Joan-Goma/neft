@@ -288,10 +288,11 @@ func (client *Client) CompleteValidator(requestID int64) {
 				if err != nil {
 					tries++
 					if tries >= 3 {
-						//client.ApplyTemporalBan()
+						client.ApplyTemporalBan()
 						client.LastMessage.Data["error"] = "you will be banned"
 						client.SendMessage()
-
+						client.WS.Close()
+						return
 					}
 				}
 				tries = 0
