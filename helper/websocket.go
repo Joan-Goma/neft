@@ -35,11 +35,11 @@ func ControlWebsocket(context *gin.Context) {
 		return
 	}
 	defer func(ws *websocket.Conn) {
-		err := ws.Close()
-		if err != nil {
-			engine.Warning.Println("Can not close this connection")
-			return
-		}
+		//err := ws.Close()
+		//if err != nil {
+		//	engine.Warning.Println("Can not close this connection", err)
+		//	return
+		//}
 	}(ws)
 
 	engine.Debug.Println("New client connected!")

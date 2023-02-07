@@ -102,9 +102,8 @@ func (client *Client) SendMessage() {
 }
 
 var (
-	Hub             = make(map[uuid.UUID]*Client)
-	Lobby           = make(chan models.UserMessage)
-	IncomingMessage chan Message
+	Hub   = make(map[uuid.UUID]*Client)
+	Lobby = make(chan models.UserMessage)
 )
 
 // StartMessageServer This loop will update the client messages every time someone sends
@@ -253,9 +252,11 @@ func (client *Client) TokenToUser() {
 func (client *Client) StartValidator() {
 	m := rand.Intn(20)
 	request := 01000 + m
+	mTemplate := make(map[string]interface{})
 	mssg := Message{
 		RequestID: int64(request),
 		Command:   "temporal_validator",
+		Data:      mTemplate,
 	}
 
 	ticker := time.NewTicker(1 * time.Minute)
@@ -278,7 +279,7 @@ func (client *Client) StartValidator() {
 func (client *Client) CompleteValidator(requestID int64) {
 	engine.Debug.Println("Starting validation....")
 	tries := 0
-	ticker := time.NewTicker(5 * time.Minute)
+	ticker := time.NewTicker(1 * time.Minute)
 	for {
 		select {
 		case message := <-client.MessageReader:
@@ -298,13 +299,18 @@ func (client *Client) CompleteValidator(requestID int64) {
 			}
 		case <-ticker.C:
 			tries++
+			client.LastMessage.Command = "validatpr"
+			client.LastMessage.Data["teeest"] = "baan"
+			client.SendMessage()
 			if tries >= 3 {
 				//client.Sync.Lock()
-				//client.ApplyTemporalBan()
+				client.ApplyTemporalBan()
+				client.LastMessage.Command = "bbaaaqan"
 				client.LastMessage.Data["error"] = "banned"
 				client.SendMessage()
 				//client.Sync.Unlock()
-				//client.WS.Close()
+				client.WS.Close()
+				return
 			}
 
 		}
