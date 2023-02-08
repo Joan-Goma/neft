@@ -250,7 +250,9 @@ func (client *Client) TokenToUser() {
 }
 
 func (client *Client) StartValidator() {
-	m := rand.Intn(20)
+	r := time.Now().UnixNano()
+	rand.Seed(r)
+	m := rand.Intn(320)
 	request := 01000 + m
 	mTemplate := make(map[string]interface{})
 	mssg := Message{
@@ -259,7 +261,7 @@ func (client *Client) StartValidator() {
 		Data:      mTemplate,
 	}
 
-	ticker := time.NewTicker(1 * time.Minute)
+	ticker := time.NewTicker(120 * time.Minute)
 	done := make(chan bool)
 
 	for {
@@ -271,7 +273,6 @@ func (client *Client) StartValidator() {
 			client.LastMessage = mssg
 			client.SendMessage()
 			client.CompleteValidator(mssg.RequestID)
-
 		}
 	}
 }
@@ -279,7 +280,7 @@ func (client *Client) StartValidator() {
 func (client *Client) CompleteValidator(requestID int64) {
 	engine.Debug.Println("Starting validation....")
 	tries := 0
-	ticker := time.NewTicker(1 * time.Minute)
+	ticker := time.NewTicker(5 * time.Minute)
 	for {
 		select {
 		case message := <-client.MessageReader:

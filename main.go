@@ -37,13 +37,6 @@ func main() {
 		engine.Error.Fatalln("Can not connect to DB: ", err)
 	}
 
-	/*defer func(Services *models.Services) {
-		err := Services.Close()
-		if err != nil {
-			engine.Error.Fatalln("Error deferring db close", err)
-		}
-	}(client.Services)*/
-
 	// Auto generate new tables or modifications in every start | Use DestructiveReset() to delete all data
 
 	if err := models.AutoMigrate(); err != nil {
