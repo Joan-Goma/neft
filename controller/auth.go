@@ -3,12 +3,14 @@ package controller
 import (
 	engine "github.com/JoanGTSQ/api"
 	"neft.web/auth"
+	"neft.web/models"
 )
 
-type AuthFuncs struct{}
+type AuthFunc struct{}
 
-func (a AuthFuncs) Login(client *Client) {
-	user, err := client.GetUserFromRequest()
+func (a AuthFunc) Login(client *Client) {
+	user := models.User{}
+	err := client.GetInterfaceFromMap("user", &user)
 	if err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err.Error()
@@ -34,13 +36,14 @@ func (a AuthFuncs) Login(client *Client) {
 	user.Password = ""
 	client.User = user
 	client.LastMessage.Data["user"] = client.User
-	client.LastMessage.Data["message"] = "login succesful"
+	client.LastMessage.Data["message"] = "login successful"
 	client.LastMessage.Data["token"] = tokenString
 	client.SendMessage()
 }
 
-func (a AuthFuncs) SignUp(client *Client) {
-	user, err := client.GetUserFromRequest()
+func (a AuthFunc) SignUp(client *Client) {
+	user := models.User{}
+	err := client.GetInterfaceFromMap("user", &user)
 	if err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err.Error()

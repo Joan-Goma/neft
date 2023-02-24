@@ -4,13 +4,15 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b55ab9d4-7f18-4127-beb2-0b8c27382938" name="Changes" comment="refactor of controller, make sure spots works and user and auth refactor">
+    <list default="true" id="b55ab9d4-7f18-4127-beb2-0b8c27382938" name="Changes" comment="more refactor and now everything is working">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/helper.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/pagination.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/helper/engine.go" beforeDir="false" afterPath="$PROJECT_DIR$/helper/router.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helper/motor.go" beforeDir="false" afterPath="$PROJECT_DIR$/helper/websocket.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/middlewares/middleware.go" beforeDir="false" afterPath="$PROJECT_DIR$/middlewares/middleware.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/controller/auth.go" beforeDir="false" afterPath="$PROJECT_DIR$/controller/auth.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/controller/core.go" beforeDir="false" afterPath="$PROJECT_DIR$/controller/core.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/controller/helper.go" beforeDir="false" afterPath="$PROJECT_DIR$/controller/helper.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/controller/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/controller/user.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/helper/router.go" beforeDir="false" afterPath="$PROJECT_DIR$/helper/router.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/helper/websocket.go" beforeDir="false" afterPath="$PROJECT_DIR$/helper/websocket.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -70,6 +72,11 @@
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;org.jetbrains.plugins.github.ui.GithubSettingsConfigurable&quot;
+  },
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;postgresql&quot;
+    ]
   }
 }</component>
   <component name="RecentsManager">
@@ -90,7 +97,7 @@
     <configuration name="go build neft.web" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
       <module name="api_server" />
       <working_directory value="$PROJECT_DIR$" />
-      <parameters value="-debug=true -route=log/log.txt -debugDB=true" />
+      <parameters value="-debug=true -route=log/log.txt -debugDB=false" />
       <kind value="PACKAGE" />
       <package value="neft.web" />
       <directory value="$PROJECT_DIR$" />
@@ -155,6 +162,16 @@
             </State>
           </value>
         </entry>
+        <entry key="e05a604c-bba6-4f7a-a68e-8845d2462fa8">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="OPEN_GENERIC_TABS">
+      <map>
+        <entry key="e05a604c-bba6-4f7a-a68e-8845d2462fa8" value="TOOL_WINDOW" />
       </map>
     </option>
   </component>
@@ -167,9 +184,26 @@
     <MESSAGE value="add fix for receiving commands and refactor" />
     <MESSAGE value="refactor delete trash and transfer all to websocket" />
     <MESSAGE value="refactor of controller, make sure spots works and user and auth refactor" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactor of controller, make sure spots works and user and auth refactor" />
+    <MESSAGE value="more refactor and now everything is working" />
+    <option name="LAST_COMMIT_MESSAGE" value="more refactor and now everything is working" />
   </component>
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/controller/auth.go</url>
+          <line>40</line>
+          <option name="timeStamp" value="5" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/controller/helper.go</url>
+          <line>94</line>
+          <option name="timeStamp" value="8" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

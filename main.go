@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"neft.web/controller"
 	"runtime"
 
 	"neft.web/models"
@@ -33,6 +34,8 @@ func init() {
 
 func main() {
 
+	i := &controller.Hub
+	engine.Debug.Println(i)
 	if err := helper.InitDB(debugDB); err != nil {
 		engine.Error.Fatalln("Can not connect to DB: ", err)
 	}
@@ -42,8 +45,6 @@ func main() {
 	if err := models.AutoMigrate(); err != nil {
 		engine.Error.Fatalln("Can not AutoMigrate the database", err)
 	}
-
-	// Retrieve controllers struct
 
 	// Generate Router
 	r := helper.InitRouter()

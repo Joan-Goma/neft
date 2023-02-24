@@ -71,6 +71,26 @@ func validateAndExecute(functionToExecute ClientCommandExecution, client *Client
 	functionToExecute(client)
 }
 
+func GenerateClient(ws *websocket.Conn, addr string) *Client {
+	u := uuid.NewV4()
+
+	mTemplate := make(map[string]interface{})
+	message := Message{Data: mTemplate}
+	client := &Client{
+		UUID:            u,
+		Addr:            addr,
+		WS:              ws,
+		LastMessage:     message,
+		IncomingMessage: message,
+		User:            models.User{},
+		Sync:            &sync.Mutex{},
+	}
+	client.RegisterToPool()
+	go client.StartMessageServer()
+	go client.StartValidator()
+	return client
+}
+
 // RegisterToPool Add this client to the general pool
 func (client *Client) RegisterToPool() {
 	Hub[client.UUID] = client
@@ -111,24 +131,23 @@ func (client *Client) StartMessageServer() {
 	for {
 		select {
 		case m := <-Lobby:
-			message := Message{}
-			message.Data["message"] = message
 			if m.Receiver == uuid.FromStringOrNil("0") {
 				m.Type = "global"
 				for _, client := range Hub {
-					message.Command = "global_incoming_message"
-					if reflect.DeepEqual(client.User, m.Sender) {
-						client.LastMessage = message
+					client.LastMessage.Command = "global_incoming_message"
+					engine.Debug.Printf("client from hub %d, sender %d", client.User.ID, m.Sender.ID)
+					if !reflect.DeepEqual(client.User, m.Sender) {
+						client.LastMessage.Data["message"] = m
 						client.SendMessage()
 						m.RegisterMessage()
 					}
 				}
 			} else {
 				m.Type = "private"
-				engine.Debug.Println("New private message")
-				message.Command = "private_incoming_message"
-				Hub[m.Receiver].LastMessage = message
+				Hub[m.Receiver].LastMessage.Command = "private_incoming_message"
+				Hub[m.Receiver].LastMessage.Data["message"] = m
 				Hub[m.Receiver].SendMessage()
+				engine.Debug.Println("New private message")
 				m.RegisterMessage()
 			}
 		}
@@ -170,28 +189,6 @@ func (client *Client) MessageController() {
 		client.LastMessage.Data["message"] = "Message succesful"
 		client.SendMessage()
 	}
-}
-
-// GetUserFromRequest Return a user and error from the message request
-func (client *Client) GetUserFromRequest() (models.User, error) {
-	var user models.User
-	// Convert map to json string
-	jsonStr, err := json.Marshal(client.IncomingMessage.Data["user"])
-	if err != nil {
-		engine.Debug.Println(err)
-		client.LastMessage.Data["error"] = err.Error()
-		client.SendMessage()
-		return models.User{}, err
-	}
-
-	// Obtain the body in the request and parse to the user
-	if err := json.Unmarshal(jsonStr, &user); err != nil {
-		engine.Warning.Println(err)
-		client.LastMessage.Data["error"] = engine.ERR_INVALID_JSON
-		client.SendMessage()
-		return models.User{}, err
-	}
-	return user, nil
 }
 
 // GetInterfaceFromMap Search from the message request and save it into dest
@@ -281,6 +278,7 @@ func (client *Client) CompleteValidator(requestID int64) {
 	engine.Debug.Println("Starting validation....")
 	tries := 0
 	ticker := time.NewTicker(5 * time.Minute)
+	client.LastMessage.Command = "core.token.validator"
 	for {
 		select {
 		case message := <-client.MessageReader:
@@ -301,20 +299,15 @@ func (client *Client) CompleteValidator(requestID int64) {
 			}
 		case <-ticker.C:
 			tries++
-			client.LastMessage.Command = "validatpr"
-			client.LastMessage.Data["teeest"] = "baan"
+			client.LastMessage.Data["error"] = "you didn't send any message"
 			client.SendMessage()
 			if tries >= 3 {
-				//client.Sync.Lock()
 				client.ApplyTemporalBan()
-				client.LastMessage.Command = "bbaaaqan"
-				client.LastMessage.Data["error"] = "banned"
+				client.LastMessage.Data["error"] = "you will be banned"
 				client.SendMessage()
-				//client.Sync.Unlock()
 				client.WS.Close()
 				return
 			}
-
 		}
 	}
 }

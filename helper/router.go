@@ -45,11 +45,13 @@ func InitRouter() *gin.Engine {
 	//Controllers for websocket commands
 	engine.Debug.Println("Generating controllers for commands of websocket")
 	GenerateController("core.whoami", controller.CoreFuncs{}.WhoAmI)
+	GenerateController("core.hub", controller.CoreFuncs{}.PrintHub)
 	GenerateController("core.quit", controller.CoreFuncs{}.Quit)
 	GenerateController("core.token.validate", controller.CoreFuncs{}.ValidateToken)
+	GenerateController("core.message", controller.CoreFuncs{}.MessageController)
 
-	GenerateController("auth.login", controller.AuthFuncs{}.Login)
-	GenerateController("auth.signup", controller.AuthFuncs{}.SignUp)
+	GenerateController("auth.login", controller.AuthFunc{}.Login)
+	GenerateController("auth.signup", controller.AuthFunc{}.SignUp)
 
 	GenerateController("user.retrieve.single", controller.UserFuncs{}.RetrieveUser)
 	GenerateController("user.retrieve.all", controller.UserFuncs{}.RetrieveAllUser)

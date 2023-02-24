@@ -3,15 +3,12 @@ package helper
 import (
 	"encoding/json"
 	"net/http"
-	"sync"
 	"time"
 
 	engine "github.com/JoanGTSQ/api"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	uuid "github.com/satori/go.uuid"
 	"neft.web/controller"
-	"neft.web/models"
 )
 
 var upgrader = websocket.Upgrader{
@@ -35,15 +32,11 @@ func ControlWebsocket(context *gin.Context) {
 		return
 	}
 	defer func(ws *websocket.Conn) {
-		//err := ws.Close()
-		//if err != nil {
-		//	engine.Warning.Println("Can not close this connection", err)
-		//	return
-		//}
+
 	}(ws)
 
 	engine.Debug.Println("New client connected!")
-	c, err := GenerateClient(ws, ws.RemoteAddr().String())
+	c := controller.GenerateClient(ws, ws.RemoteAddr().String())
 
 	if err != nil {
 		err := ws.Close()
@@ -80,28 +73,6 @@ func ControlWebsocket(context *gin.Context) {
 		c.IncomingMessage = cM
 		engine.Debug.Println("command processed")
 	}
-}
-
-func GenerateClient(ws *websocket.Conn, addr string) (controller.Client, error) {
-	u := uuid.NewV4()
-	if controller.Hub[u] != nil {
-		u = uuid.NewV4()
-	}
-	mTemplate := make(map[string]interface{})
-	message := controller.Message{Data: mTemplate}
-	newClient := controller.Client{
-		UUID:            u,
-		Addr:            addr,
-		WS:              ws,
-		LastMessage:     message,
-		IncomingMessage: message,
-		User:            models.User{},
-		Sync:            &sync.Mutex{},
-	}
-	newClient.RegisterToPool()
-	go newClient.StartMessageServer()
-	go newClient.StartValidator()
-	return newClient, nil
 }
 
 func ReadMessage(ws *websocket.Conn, dest interface{}) error {

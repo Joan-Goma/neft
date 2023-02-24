@@ -13,7 +13,9 @@ type UserFuncs struct {
 // UpdateUser Get the user from the json request, compare ID and update it
 func (u UserFuncs) UpdateUser(client *Client) {
 
-	newUser, err := client.GetUserFromRequest()
+	newUser := models.User{}
+
+	err := client.GetInterfaceFromMap("user", &newUser)
 	if err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err.Error()
@@ -43,7 +45,7 @@ func (u UserFuncs) UpdateUser(client *Client) {
 func (u UserFuncs) DeleteUser(client *Client) {
 	var user models.User
 
-	user, err := client.GetUserFromRequest()
+	err := client.GetInterfaceFromMap("user", user)
 	if err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err.Error()
@@ -74,7 +76,8 @@ func (u UserFuncs) DeleteUser(client *Client) {
 // RetrieveUser Obtain the user from the json request and search it by ID
 func (u UserFuncs) RetrieveUser(client *Client) {
 
-	user, err := client.GetUserFromRequest()
+	user := &models.User{}
+	err := client.GetInterfaceFromMap("user", user)
 	if err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err.Error()
@@ -96,8 +99,9 @@ func (u UserFuncs) RetrieveUser(client *Client) {
 
 // InitUserReset Initiate the process of restore a password
 func (u UserFuncs) InitUserReset(client *Client) {
+	user := &models.User{}
 
-	user, err := client.GetUserFromRequest()
+	err := client.GetInterfaceFromMap("user", user)
 	if err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err.Error()
@@ -126,7 +130,9 @@ type CompletePasswdReset struct {
 
 // CompleteReset Use this controller to complete the password reset with token
 func (u UserFuncs) CompleteReset(client *Client) {
-	user, err := client.GetUserFromRequest()
+	user := &models.User{}
+
+	err := client.GetInterfaceFromMap("user", user)
 	if err != nil {
 		engine.Warning.Println(err)
 		client.LastMessage.Data["error"] = err.Error()
