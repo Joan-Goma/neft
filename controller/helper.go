@@ -42,7 +42,7 @@ var (
 
 func (client *Client) ExecuteCommand(commandName string) {
 
-	if MapFuncs[commandName] == nil {
+	if MapFuncs[commandName] == nil || client.IncomingMessage.RequestID == 0 {
 		client.LastMessage.Data["error"] = "command invalid, please try again"
 		client.SendMessage()
 		return

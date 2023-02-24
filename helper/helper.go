@@ -9,3 +9,8 @@ func GenerateController(handlerName string, funcType controller.ClientCommandExe
 	engine.Debug.Printf("New handler registered %s", handlerName)
 	controller.MapFuncs[handlerName] = funcType
 }
+
+func DeleteController(handlerName string) {
+	delete(controller.MapFuncs, handlerName)
+	engine.Debug.Printf("controller %s deleted", handlerName)
+}
