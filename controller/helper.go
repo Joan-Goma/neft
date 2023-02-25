@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math/rand"
 	"reflect"
 	"strings"
@@ -75,12 +74,14 @@ func GenerateClient(ws *websocket.Conn, addr string) *Client {
 	u := uuid.NewV4()
 
 	mTemplate := make(map[string]interface{})
+	mmTemplate := make(map[string]interface{})
+	mssg := Message{Data: mmTemplate}
 	message := Message{Data: mTemplate}
 	client := &Client{
 		UUID:            u,
 		Addr:            addr,
 		WS:              ws,
-		LastMessage:     message,
+		LastMessage:     mssg,
 		IncomingMessage: message,
 		User:            models.User{},
 		Sync:            &sync.Mutex{},
@@ -151,43 +152,6 @@ func (client *Client) StartMessageServer() {
 				m.RegisterMessage()
 			}
 		}
-	}
-}
-
-// MessageController Control the desired message to send all users or single user
-func (client *Client) MessageController() {
-	if !client.CheckClientIsSync() {
-		client.LastMessage.Data["error"] = "Please sync your client before sending messages"
-		client.SendMessage()
-		return
-	}
-	messagee := models.UserMessage{
-		Sender:  client.User,
-		Message: fmt.Sprintf("%v", client.IncomingMessage.Data["message"]),
-	}
-
-	if client.IncomingMessage.Data["receiver"] == nil {
-		if client.User.RoleID == 3 {
-			messagee.Receiver = uuid.FromStringOrNil("0")
-			Lobby <- messagee
-			client.LastMessage.Data["message"] = "Message succesful"
-			client.SendMessage()
-		} else {
-			client.LastMessage.Data["error"] = "You don't have enough rights to send this messages"
-			client.SendMessage()
-		}
-
-	} else {
-		uuidReceiver, err := uuid.FromString(fmt.Sprintf("%v", client.IncomingMessage.Data["receiver"]))
-		if err != nil {
-			engine.Warning.Println(err)
-			client.LastMessage.Data["error"] = err.Error()
-			client.SendMessage()
-		}
-		messagee.Receiver = uuidReceiver
-		Lobby <- messagee
-		client.LastMessage.Data["message"] = "Message succesful"
-		client.SendMessage()
 	}
 }
 
@@ -290,7 +254,10 @@ func (client *Client) CompleteValidator(requestID int64) {
 						client.ApplyTemporalBan()
 						client.LastMessage.Data["error"] = "you will be banned"
 						client.SendMessage()
-						client.WS.Close()
+						err := client.WS.Close()
+						if err != nil {
+							return
+						}
 						return
 					}
 				}
@@ -305,7 +272,10 @@ func (client *Client) CompleteValidator(requestID int64) {
 				client.ApplyTemporalBan()
 				client.LastMessage.Data["error"] = "you will be banned"
 				client.SendMessage()
-				client.WS.Close()
+				err := client.WS.Close()
+				if err != nil {
+					return
+				}
 				return
 			}
 		}

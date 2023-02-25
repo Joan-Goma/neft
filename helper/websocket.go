@@ -59,7 +59,8 @@ func ControlWebsocket(context *gin.Context) {
 			return
 		}
 
-		c.LastMessage = c.IncomingMessage
+		c.LastMessage.RequestID = c.IncomingMessage.RequestID
+		c.LastMessage.Command = c.IncomingMessage.Command
 
 		//Execute the command readed
 		c.ExecuteCommand(c.IncomingMessage.Command)
@@ -69,8 +70,12 @@ func ControlWebsocket(context *gin.Context) {
 		cM := controller.Message{
 			Data: data,
 		}
-
+		dataTwo := make(map[string]interface{})
+		cS := controller.Message{
+			Data: dataTwo,
+		}
 		c.IncomingMessage = cM
+		c.LastMessage = cS
 		engine.Debug.Println("command processed")
 	}
 }

@@ -4,16 +4,7 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b55ab9d4-7f18-4127-beb2-0b8c27382938" name="Changes" comment="more refactor and now everything is working">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/controller/auth.go" beforeDir="false" afterPath="$PROJECT_DIR$/controller/auth.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/controller/core.go" beforeDir="false" afterPath="$PROJECT_DIR$/controller/core.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/controller/helper.go" beforeDir="false" afterPath="$PROJECT_DIR$/controller/helper.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/controller/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/controller/user.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helper/router.go" beforeDir="false" afterPath="$PROJECT_DIR$/helper/router.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helper/websocket.go" beforeDir="false" afterPath="$PROJECT_DIR$/helper/websocket.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
-    </list>
+    <list default="true" id="b55ab9d4-7f18-4127-beb2-0b8c27382938" name="Changes" comment="fiiix" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -185,7 +176,8 @@
     <MESSAGE value="refactor delete trash and transfer all to websocket" />
     <MESSAGE value="refactor of controller, make sure spots works and user and auth refactor" />
     <MESSAGE value="more refactor and now everything is working" />
-    <option name="LAST_COMMIT_MESSAGE" value="more refactor and now everything is working" />
+    <MESSAGE value="fiiix" />
+    <option name="LAST_COMMIT_MESSAGE" value="fiiix" />
   </component>
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>
@@ -200,7 +192,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/controller/helper.go</url>
-          <line>94</line>
+          <line>95</line>
           <option name="timeStamp" value="8" />
         </line-breakpoint>
       </breakpoints>
