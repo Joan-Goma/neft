@@ -65,7 +65,15 @@ func ControlWebsocket(context *gin.Context) {
 		//Execute the command readed
 		c.ExecuteCommand(c.IncomingMessage.Command)
 
-		// Reset the data of the incomming message
+		if c.User.Banned {
+			err := c.WS.Close()
+			if err != nil {
+				engine.Debug.Println("could not close connection by user banned")
+				return
+			}
+			return
+		}
+		//Reset the data of the incomming message
 		data := make(map[string]interface{})
 		cM := controller.Message{
 			Data: data,

@@ -35,10 +35,15 @@ type Message struct {
 	Data      map[string]interface{} `json:"data,omitempty"`
 }
 
+type ClientCommandExecution func(c *Client)
+
 var (
+	Hub      = make(map[uuid.UUID]*Client)
+	Lobby    = make(chan models.UserMessage)
 	MapFuncs = make(map[string]ClientCommandExecution)
 )
 
+// ExecuteCommand receive the name of the command and search it into the functions map
 func (client *Client) ExecuteCommand(commandName string) {
 
 	if MapFuncs[commandName] == nil || client.IncomingMessage.RequestID == 0 {
@@ -53,8 +58,7 @@ func (client *Client) ExecuteCommand(commandName string) {
 	MapFuncs[commandName](client)
 }
 
-type ClientCommandExecution func(c *Client)
-
+// validateAndExecute
 func validateAndExecute(functionToExecute ClientCommandExecution, client *Client) {
 
 	if client.User.Banned {
@@ -70,6 +74,7 @@ func validateAndExecute(functionToExecute ClientCommandExecution, client *Client
 	functionToExecute(client)
 }
 
+// GenerateClient Receive parameters and generate a client
 func GenerateClient(ws *websocket.Conn, addr string) *Client {
 	u := uuid.NewV4()
 
@@ -105,6 +110,7 @@ func (client *Client) CheckClientIsSync() bool {
 	return true
 }
 
+// SendMessage Send the data from the client.LastMessage through the websocket
 func (client *Client) SendMessage() {
 	reqBodyBytes := new(bytes.Buffer)
 	err := json.NewEncoder(reqBodyBytes).Encode(client.LastMessage)
@@ -121,11 +127,6 @@ func (client *Client) SendMessage() {
 	engine.Debug.Println("New message sent")
 	client.Sync.Unlock()
 }
-
-var (
-	Hub   = make(map[uuid.UUID]*Client)
-	Lobby = make(chan models.UserMessage)
-)
 
 // StartMessageServer This loop will update the client messages every time someone sends
 func (client *Client) StartMessageServer() {
@@ -179,11 +180,19 @@ func (client *Client) GetInterfaceFromMap(position string, dest interface{}) err
 	return nil
 }
 
+// ApplyTemporalBan cChange the user var Banned to true, and close the connection
 func (client *Client) ApplyTemporalBan() {
 	client.User.Banned = true
+	err := client.WS.Close()
+	if err != nil {
+		engine.Debug.Println("Can not close the connection")
+		return
+	}
 }
 
+// ValidateToken Get the token var from the message, validate and insert the user from the token to the client
 func (client *Client) ValidateToken() error {
+
 	var token string
 
 	if err := client.GetInterfaceFromMap("token", &token); err != nil {
@@ -195,10 +204,13 @@ func (client *Client) ValidateToken() error {
 		err = errors.New("token not valid, please try again")
 		return err
 	}
+
 	client.Token = token
 	client.TokenToUser()
 	return nil
 }
+
+// TokenToUser Get the user from the token and insert into client
 func (client *Client) TokenToUser() {
 	claims, err := auth.ReturnClaims(client.Token)
 	if err != nil {
@@ -210,6 +222,7 @@ func (client *Client) TokenToUser() {
 	client.User = claims.Context.User
 }
 
+// StartValidator Start a timeout to init the validator
 func (client *Client) StartValidator() {
 	r := time.Now().UnixNano()
 	rand.Seed(r)
@@ -222,7 +235,7 @@ func (client *Client) StartValidator() {
 		Data:      mTemplate,
 	}
 
-	ticker := time.NewTicker(120 * time.Minute)
+	ticker := time.NewTicker(30 * time.Second)
 	done := make(chan bool)
 
 	for {
@@ -238,10 +251,11 @@ func (client *Client) StartValidator() {
 	}
 }
 
+// CompleteValidator Send messages to remember the response of the validator
 func (client *Client) CompleteValidator(requestID int64) {
 	engine.Debug.Println("Starting validation....")
 	tries := 0
-	ticker := time.NewTicker(5 * time.Minute)
+	ticker := time.NewTicker(1 * time.Minute)
 	client.LastMessage.Command = "core.token.validator"
 	for {
 		select {
@@ -254,10 +268,6 @@ func (client *Client) CompleteValidator(requestID int64) {
 						client.ApplyTemporalBan()
 						client.LastMessage.Data["error"] = "you will be banned"
 						client.SendMessage()
-						err := client.WS.Close()
-						if err != nil {
-							return
-						}
 						return
 					}
 				}
@@ -272,10 +282,6 @@ func (client *Client) CompleteValidator(requestID int64) {
 				client.ApplyTemporalBan()
 				client.LastMessage.Data["error"] = "you will be banned"
 				client.SendMessage()
-				err := client.WS.Close()
-				if err != nil {
-					return
-				}
 				return
 			}
 		}
